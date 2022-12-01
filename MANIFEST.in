@@ -1,5 +1,4 @@
 include README.md
 include CHANGELOG.md
 include LICENSE
-include logunittest/resources/_logunittest.yml
 include logunittest/logs/.gitkeep
