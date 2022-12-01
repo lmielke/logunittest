@@ -58,7 +58,7 @@ class UnitTestWithLogging:
                 if numFails.isnumeric():
                     numFails = int(numFails)
         numOk = numTests - numFails
-        return f"summary: [all:{numTests} ok:{numOk} err:{numFails}]"
+        return f"{self.pgName} summary: [all:{numTests} ok:{numOk} err:{numFails}]"
 
 class Coverage:
     """ 
@@ -67,10 +67,11 @@ class Coverage:
         NOTE: this module is used by powershell to display test result in header
         HANDLE WITH CARE
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, logDir:str=None, **kwargs):
         self.pgName = get_package_name(*args, **kwargs)
-        self.logDir = self.get_log_dir(*args, **kwargs)
+        self.logDir = logDir if logDir is not None else self.get_log_dir(*args, **kwargs)
         self.regex = r'([0-9 :-]*)( INFO logunittest .* summary: )(\[.*\])'
+        self.latest = ['Nothing', 'Nothing']
 
     def __call__(self, *args, **kwargs):
         return self.get_stats()
@@ -101,20 +102,21 @@ class Coverage:
         """
         if self.logDir is None:
             sys.stderr.write(f"<@><{dt.today()}>!{'logdir not found'}<@>")
-        logFilePaths = self.get_recent_logfile()
+        logFilePaths = self.get_sorted_logfiles()
         for logFilePath in logFilePaths:
-            with open(logFilePath, 'r') as text:
-                if text == '': continue
-                match = re.search(self.regex, text.read())
+            with open(logFilePath, 'r') as t:
+                text = t.read()
+                match = re.search(self.regex, text)
             if match:
                 time = match.group(1)
                 testResults = match.group(3)
+                self.latest = text.split('\n', 1)
                 break
         stats = f"<@>{time}!{testResults}<@>"
         sys.stderr.write(stats)
         return stats
 
-    def get_recent_logfile(self, *args, **kwargs):
+    def get_sorted_logfiles(self, *args, **kwargs):
         files = ([os.path.join(self.logDir, f) for f in os.listdir(self.logDir)
                                             if re.match(r'^logunittest.*\.log$', f)
                                             and os.path.isfile(os.path.join(self.logDir, f))])

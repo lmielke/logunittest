@@ -34,7 +34,7 @@ class UnitTest(unittest.TestCase):
         return out
 
     def test_extract_stats(self, *args, **kwargs):
-        expected = "summary: [all:20 ok:19 err:1]"
+        expected = "logunittest summary: [all:20 ok:19 err:1]"
         with open(self.logFile, 'r') as f:
             results = f.read()
         t = LUT(*args, **kwargs)
@@ -48,6 +48,7 @@ class UnitTest(unittest.TestCase):
         cov = Coverage()
         cov.logDir = sts.testDataDir
         self.assertEqual(expected, cov())
+        print(f"{cov.latest = }")
 
 if __name__ == "__main__":
     unittest.main()
