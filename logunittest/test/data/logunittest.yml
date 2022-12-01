@@ -1,0 +1,4 @@
+verbose: 0
+packageName: logunittest
+targetDir: /temp
+packageAlias: lut
