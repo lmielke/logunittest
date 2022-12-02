@@ -12,7 +12,7 @@ class UnitTestWithLogging:
         if pgPath is None: pgPath = '.'
         self.timeStamp = re.sub(r"([:. ])", r"-", str(dt.now()))
         self.pgName = get_package_name(pgPath, *args, pgPath=pgPath, **kwargs)
-        self.logDir = os.path.join(pgPath, self.pgName, 'test', 'logs')
+        self.logDir = Coverage.get_log_dir(self.pgName, **kwargs)
         assert os.path.isdir(self.logDir), f"logDir: {self.logDir} does not exist !"
         self.logDefaultName = f"{os.path.basename(__file__)[:-3]}_{self.timeStamp}.log"
         self.log = logger.mk_logger(self.logDir, self.logDefaultName, __name__)
@@ -35,6 +35,7 @@ class UnitTestWithLogging:
         summary = self.extract_stats(results)
         body = results.replace("\r", "").replace("\n\n", "\n")
         results = "\n".join([l for l in body.split("\n")] )
+        results += f"\n{sys.executable}"
         self.log.info(f"{summary}\n{results}")
 
     def extract_stats(self, results):
@@ -69,14 +70,15 @@ class Coverage:
     """
     def __init__(self, *args, logDir:str=None, **kwargs):
         self.pgName = get_package_name(*args, **kwargs)
-        self.logDir = logDir if logDir is not None else self.get_log_dir(*args, **kwargs)
+        self.logDir = logDir if logDir is not None else Coverage.get_log_dir(*args, self.pgName, **kwargs)
         self.regex = r'([0-9 :-]*)( INFO logunittest .* summary: )(\[.*\])'
         self.latest = ['Nothing', 'Nothing']
 
     def __call__(self, *args, **kwargs):
         return self.get_stats()
 
-    def get_log_dir(self, *args, **kwargs) -> str:
+    @staticmethod
+    def get_log_dir(pgName=None, *args, **kwargs) -> str:
         """ uses a keyfile such as setup.cfg to derrive
             the location of the log files directory
             the log files dir has a fixed position relative to the key files
@@ -87,9 +89,9 @@ class Coverage:
         if not projectKeyFile in files and not packageKeyFile in files:
             return None
         elif projectKeyFile in files:
-            logDir = os.path.join(os.getcwd(), self.pgName, 'test', "logs")
+            logDir = os.path.join(os.getcwd(), pgName, 'test', 'logs')
         elif packageKeyFile in files:
-            logDir = os.path.join(os.getcwd(), 'test', "logs")
+            logDir = os.path.join(os.getcwd(), 'test', 'logs')
         return logDir
 
     def get_stats(self, *args, **kwargs) -> str:

@@ -48,7 +48,7 @@ class UnitTest(unittest.TestCase):
         cov = Coverage()
         cov.logDir = sts.testDataDir
         self.assertEqual(expected, cov())
-        print(f"{cov.latest = }")
+        # print(f"{cov.latest = }")
 
 if __name__ == "__main__":
     unittest.main()
