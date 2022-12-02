@@ -1,5 +1,5 @@
 # test_unittest.py
-
+# 
 from datetime import datetime as dt
 import os, re, sys
 import subprocess
@@ -100,19 +100,20 @@ class Coverage:
             however files.log which do not have a summary are ignared
             if a summary is found, its immmediately returned 
         """
+        default = f"<@><{dt.today()}>!{'logdir not found'}<@>"
         if self.logDir is None:
-            sys.stderr.write(f"<@><{dt.today()}>!{'logdir not found'}<@>")
+            sys.stderr.write(default)
         logFilePaths = self.get_sorted_logfiles()
         for logFilePath in logFilePaths:
             with open(logFilePath, 'r') as t:
                 text = t.read()
                 match = re.search(self.regex, text)
             if match:
-                time = match.group(1)
-                testResults = match.group(3)
+                stats = f"<@>{match.group(1)}!{match.group(3)}<@>"
                 self.latest = text.split('\n', 1)
                 break
-        stats = f"<@>{time}!{testResults}<@>"
+        else:
+            stats = default
         sys.stderr.write(stats)
         return stats
 
