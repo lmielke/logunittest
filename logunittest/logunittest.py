@@ -7,15 +7,24 @@ from contextlib import contextmanager
 import logunittest.settings as sts
 import logunittest.logger as logger
 
+
 class UnitTestWithLogging:
     def __init__(self, *args, pgPath:str=None, **kwargs) -> None:
         if pgPath is None: pgPath = '.'
         self.timeStamp = re.sub(r"([:. ])", r"-", str(dt.now()))
         self.pgName = get_package_name(pgPath, *args, pgPath=pgPath, **kwargs)
-        self.logDir = Coverage.get_log_dir(self.pgName, **kwargs)
+        self.logDir = self.mk_log_dir(*args, **kwargs)
+        # self.logDir = Coverage.get_log_dir(self.pgName, **kwargs)
         assert os.path.isdir(self.logDir), f"logDir: {self.logDir} does not exist !"
         self.logDefaultName = f"{os.path.basename(__file__)[:-3]}_{self.timeStamp}.log"
         self.log = logger.mk_logger(self.logDir, self.logDefaultName, __name__)
+
+
+    def mk_log_dir(self, *args, **kwargs) -> str:
+        logDir = os.path.join(os.path.expanduser('~/.testlogs'), self.pgName)
+        if not os.path.exists(logDir):
+            os.makedirs(logDir)
+        return logDir
 
 
     def run_unittest(self, *args, **kwargs) -> None:
@@ -70,7 +79,8 @@ class Coverage:
     """
     def __init__(self, *args, logDir:str=None, **kwargs):
         self.pgName = get_package_name(*args, **kwargs)
-        self.logDir = logDir if logDir is not None else Coverage.get_log_dir(*args, self.pgName, **kwargs)
+        self.logDir = os.path.join(os.path.expanduser('~/.testlogs'), self.pgName)
+        # self.logDir = Coverage.get_log_dir(self.pgName, **kwargs)
         self.regex = r'([0-9 :-]*)( INFO logunittest .* summary: )(\[.*\])'
         self.latest = ['Nothing', 'Nothing']
 
@@ -103,7 +113,7 @@ class Coverage:
             if a summary is found, its immmediately returned 
         """
         default = f"<@><{dt.today()}>!{'logdir not found'}<@>"
-        if self.logDir is None:
+        if self.logDir is None or not os.path.exists(self.logDir):
             sys.stderr.write(default)
         logFilePaths = self.get_sorted_logfiles()
         for logFilePath in logFilePaths:
