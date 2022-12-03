@@ -11,6 +11,7 @@ import logunittest.logger as logger
 class UnitTestWithLogging:
     def __init__(self, *args, pgPath:str=None, **kwargs) -> None:
         if pgPath is None: pgPath = '.'
+        self.pgPath = pgPath
         self.timeStamp = re.sub(r"([:. ])", r"-", str(dt.now()))
         self.pgName = get_package_name(pgPath, *args, pgPath=pgPath, **kwargs)
         self.logDir = self.mk_log_dir(*args, **kwargs)
@@ -26,7 +27,6 @@ class UnitTestWithLogging:
             os.makedirs(logDir)
         return logDir
 
-
     def run_unittest(self, *args, **kwargs) -> None:
         """ 
             main unittest funciton which runs unittest using pipenv
@@ -34,10 +34,10 @@ class UnitTestWithLogging:
             Note: a logDir must exist in the package directory to be tested
         """
         if not os.path.exists(self.logDir):
-            raise Exception(f"Unknow logDir: {self.logDir}! Check {pgPath} !")
+            raise Exception(f"Unknow logDir: {self.logDir}! Check {self.pgPath} !")
         cmds = ['pipenv', 'run', "python", "-m", "unittest"]
         results = (
-            subprocess.Popen(cmds, stderr=subprocess.PIPE)
+            subprocess.Popen(cmds, stderr=subprocess.PIPE, cwd=self.pgPath)
             .stderr.read()
             .decode("utf-8")
         )
