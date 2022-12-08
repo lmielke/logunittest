@@ -6,6 +6,7 @@ projectDir = os.path.dirname(packageDir)
 
 actionsDir = os.path.join(packageDir, "actions")
 logsDir = os.path.join(packageDir, "logs")
+testLogsDir = os.path.expanduser(os.path.join('~/.testlogs'))
 ressourcesDir = os.path.join(packageDir, "ressources")
 
 testDir = os.path.join(packageDir, "test")

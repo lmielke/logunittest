@@ -22,7 +22,7 @@ class UnitTestWithLogging:
 
 
     def mk_log_dir(self, *args, **kwargs) -> str:
-        logDir = os.path.join(os.path.expanduser('~/.testlogs'), self.pgName)
+        logDir = os.path.join(sts.testLogsDir, self.pgName)
         if not os.path.exists(logDir):
             os.makedirs(logDir)
         return logDir
