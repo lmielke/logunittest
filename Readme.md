@@ -36,3 +36,15 @@ NOTE: if targetDir is omitted os.getcwd() is used
 ### logunittest
 - logunittest/\__main__.py serves as the lut entry point and calls module in logunittest/actions, see setup.cfg
 - 'lut ut' will os.chdir() into the targetDir and then run: 'pipenv run python -m unittest' within the targetDir
+
+## Runntime state
+Tests can be run using different runntime states such as Pipfile sources or db connections.
+You might implement a git_sync action that syncs after sucessfully running ut.
+Currently only one single change is alpha implemented:
+- Pipfile sources can vary between git source vs. local path source ('rm' == git source)
+- changes the Pipfile temporarily from local path source to git source
+- this can be usefull if a push to git requires the source to change
+- running "lut pipfile -r rm" will temporarily change the Pipfile
+
+## Coverage Infos
+To display some stats from last tests use "lut stats" command.

@@ -6,12 +6,14 @@ name = "pypi"
 [packages]
 colorama = "*"
 pyyaml = "*"
-black = "*"
 requests = "*"
 tabulate = "*"
 logunittest = {editable = true, path = "."}
 
 [dev-packages]
+black = "*"
+pre-commit = "*"
+toml = "*"
 
 [requires]
 python_version = "3.9"

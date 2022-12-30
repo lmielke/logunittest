@@ -45,7 +45,18 @@ def mk_args():
         const=None,
         type=str,
         default='.',
-        help="default parameter to change",
+        help="package directory to be run",
+    )
+
+    parser.add_argument(
+        "-m",
+        "--comment",
+        required=False,
+        nargs=None,
+        const=None,
+        type=str,
+        default=None,
+        help="if tested suceessfully, the package can be pushed to git with a comment",
     )
 
     parser.add_argument(
@@ -57,6 +68,17 @@ def mk_args():
         type=int,
         default=0,
         help="0:silent, 1:user, 2:debug",
+    )
+
+    parser.add_argument(
+        "-g",
+        "--git_sync",
+        required=False,
+        nargs="?",
+        const=1,
+        type=bool,
+        default=None,
+        help="run git_sync after testing",
     )
 
     parser.add_argument(

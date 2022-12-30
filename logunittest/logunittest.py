@@ -51,7 +51,7 @@ class UnitTestWithLogging:
         """ summerizes test results to add to the log header like [all:12 ok:11 err:1]
             NOTE: the log header is read by powershell, so treat with care
         """
-        numFails = 0
+        numFails, numTests, numOk = 0, 0, 0
         regex = r'(Ran )(\d{1,3})( tests?.*)'
         match = re.search(regex, results)
         # tet total number of tests

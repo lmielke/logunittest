@@ -1,5 +1,5 @@
 # settings.py
-import os, sys, time, yaml
+import json, os
 
 packageDir = os.path.dirname(__file__)
 projectDir = os.path.dirname(packageDir)
@@ -11,6 +11,7 @@ ressourcesDir = os.path.join(packageDir, "ressources")
 
 testDir = os.path.join(packageDir, "test")
 testDataDir = os.path.join(testDir, "data")
+
 
 
 def unalias_path(workPath: str) -> str:
@@ -25,3 +26,19 @@ def unalias_path(workPath: str) -> str:
         workPath = os.path.join(os.getcwd(), workPath[2:]).replace("/", os.sep)
     return os.path.abspath(workPath)
 
+# PIPFILE midifier
+availableAppsPath = unalias_path("~/python_venvs/modules/os_setup/droplet/configs/available_apps.json")
+with open(availableAppsPath, "r") as j:
+    availableApps = json.load(j)
+
+# params are used to modify pipfile_state in filestates.PipFileState.mk_pipfile_state
+params = {}
+try:
+    from joringels.src.actions import fetch
+    repoParams = fetch.alloc(entryName='repo_download', retain=True)
+    params.update({'apiKey': repoParams['password']})
+except:
+    params.update({'apiKey': 'oauth2:glpat-PDn2Nftephd5_mGosn4x'})
+
+# git_sync source is used in ut.py
+gitSyncCmd = ["powershell.exe", "/Users/lars/python_venvs/prc/git_sync.ps1"]
