@@ -11,11 +11,12 @@ import colorama as color
 color.init()
 
 
-def main(*args, targetDir, comment:str=None, git_sync:bool=False, **kwargs) -> None:
+def main(*args, targetDir, comment:str='', git_sync:bool=False, **kwargs) -> None:
+    comment = '' if comment is None else comment
     ut(pgPath=targetDir)
     if git_sync:
         from logunittest.filestates import PipFileState
-        if comment is None: comment = stats.main(*args, targetDir=targetDir, **kwargs)
+        comment += f" [{stats.main(*args, targetDir=targetDir, **kwargs).split('[')[1]}"
         with PipFileState(*args, targetDir=targetDir, **kwargs) as p:
             # print(f"Now pushing with modified Pipfile: {comment}")
             sts.gitSyncCmd.extend([f'"{targetDir}"', f'"{comment}"'])
