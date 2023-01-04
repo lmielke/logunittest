@@ -16,6 +16,7 @@ def main(*args, targetDir, git_sync: bool = False, **kwargs) -> None:
     if git_sync:
         from logunittest.filestates import GitSyncContext
 
+        kwargs.update({"tempRmSource": True, "tempPythonVersion": "3.9"})
         comment = add_comment(*args, targetDir=targetDir, **kwargs)
         with GitSyncContext(*args, targetDir=targetDir, **kwargs) as p:
             # print(f"Now pushing with modified Pipfile: {comment}")

@@ -12,9 +12,11 @@ color.init()
 
 class GitSyncContext:
     def __init__(self, *args, **kwargs):
+        self.kwargs = kwargs
         self.state = {}
 
     def __enter__(self, *args, **kwargs):
+        kwargs.update(self.kwargs)
         self.pre_sync_hooks(*args, **kwargs)
         self.file_modifier(*args, **kwargs)
         return self
@@ -44,23 +46,25 @@ class GitSyncContext:
         for hook in os.listdir(sts.preSyncHooksDir):
             hookName = os.path.splitext(hook)[0]
             pipfile_state = importlib.import_module(f"logunittest.pre_sync_hooks.{hookName}")
-            pars = pipfile_state.main(*args, **kwargs)
-            # pars asserts
-            msg = f"pre_sync_hook must return a dictionary, but returned: {type(pars)}"
-            assert type(pars) == dict, f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
-            for k in pars:
-                msg = f"pre_sync_hook dict keys must be existing full filePaths: {k}"
-                assert os.path.isfile(k), f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
-            for k, vs in pars.items():
-                msg = (
-                    f"pre_sync_hook dict values must contain a hookType like: "
-                    f"'hookType': 'fileModification', "
-                    f"but has: {vs.get('hookType')}"
-                )
-                msg = f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
-                assert vs.get("hookType") in sts.hookTypes, msg
-
+            try:
+                pars = pipfile_state.main(*args, **kwargs)
+            except Exception as e:
+                continue
+            self.verify_hook_pars(pars, *args, **kwargs)
             self.state.update(pars)
+
+    def verify_hook_pars(self, pars, *args, **kwargs):
+        # pars asserts
+        msg = f"pre_sync_hook must return a dictionary, but returned: {type(pars)}"
+        assert type(pars) == dict, f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
+        for k, vs in pars.items():
+            msg = (
+                f"pre_sync_hook dict values must contain a hookType like: "
+                f"'hookType': 'fileModification', "
+                f"but has: {vs.get('hookType')}"
+            )
+            msg = f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
+            assert vs.get("hookType") in sts.hookTypes, msg
 
     def modify(self, *args, **kwargs):
         """
@@ -70,6 +74,8 @@ class GitSyncContext:
         for filePath, state in self.state.items():
             if state.get("hookType") != "fileModification":
                 continue
+            msg = f"fileModification-hook keys must be existing full filePaths: {filePath}"
+            assert os.path.isfile(filePath), f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
             with open(filePath, "r") as f:
                 text = f.read()
                 modified = text
