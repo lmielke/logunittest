@@ -14,26 +14,28 @@ color.init()
 
 
 class GitSyncContext:
-    def __init__(self, *args, targetDir, **kwargs):
-        self.pipfilePath = os.path.join(sts.unalias_path(targetDir), "Pipfile")
+    def __init__(self, *args, **kwargs):
+        print(f"__init__: {kwargs = }")
         self.state = {}
 
     def __enter__(self, *args, **kwargs):
+        print(f"{kwargs = }")
         self.pre_sync_hooks(*args, **kwargs)
         self.text, self.modified = self.modify()
-        self.save(self.modified, self.pipfilePath)
+        self.save(self.modified, self.pipFilePath)
         return self
 
     def __exit__(self, *args, **kwargs):
-        if os.path.exists(self.pipfilePath):
-            self.save(self.text, self.pipfilePath)
+        if os.path.exists(self.pipFilePath):
+            self.save(self.text, self.pipFilePath)
 
     def pre_sync_hooks(self, *args, **kwargs):
         self.state.update(self.update_pipfile_state(*args, **kwargs))
 
     def update_pipfile_state(self, *args, **kwargs):
+        self.pipFilePath = os.path.join(sts.projectDir, "Pipfile")
         state = {}
-        pipfileContent = toml.load(self.pipfilePath)
+        pipfileContent = toml.load(self.pipFilePath)
         pgKeys = pipfileContent["packages"].keys() & sts.availableApps.keys()
         for pgKey in pgKeys:
             # if package entry referes to the current package itself, dont modify
@@ -55,7 +57,7 @@ class GitSyncContext:
         reads Pipfile and returns its text as well as a modified version of text
         finds a regex string as defined in self.pre_sync_hooks() and changes it
         """
-        with open(self.pipfilePath, "r") as f:
+        with open(self.pipFilePath, "r") as f:
             text = f.read()
             modified = text
         for k, vs in self.state.items():
@@ -63,9 +65,9 @@ class GitSyncContext:
         return text, modified
 
     def save(self, text, *args, **kwargs):
-        with open(self.pipfilePath, "w") as w:
+        with open(self.pipFilePath, "w") as w:
             text = w.write(text)
-        while not os.path.exists(self.pipfilePath):
+        while not os.path.exists(self.pipFilePath):
             continue
 
 

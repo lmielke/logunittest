@@ -12,7 +12,7 @@ color.init()
 
 
 def main(*args, targetDir, git_sync: bool = False, **kwargs) -> None:
-    ut(pgPath=targetDir)
+    ut(*args, pgPath=targetDir, **kwargs)
     if git_sync:
         from logunittest.filestates import GitSyncContext
 
