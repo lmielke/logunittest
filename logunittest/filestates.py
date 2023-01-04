@@ -1,10 +1,7 @@
 # test_toml.py 12_21_2022__15_53_53
 import logunittest.settings as sts
 import os, re, sys
-import toml
-from copy import deepcopy
-
-print(sys.executable)
+import importlib
 import colorama as color
 
 color.init()
@@ -15,41 +12,55 @@ color.init()
 
 class GitSyncContext:
     def __init__(self, *args, **kwargs):
-        print(f"__init__: {kwargs = }")
         self.state = {}
 
     def __enter__(self, *args, **kwargs):
         self.pre_sync_hooks(*args, **kwargs)
-        self.modify(*args, **kwargs)
-        self.save(*args, modificationName="modified", **kwargs)
+        self.file_modifier(*args, **kwargs)
         return self
 
     def __exit__(self, *args, **kwargs):
-        if os.path.exists(self.pipFilePath):
-            self.save(*args, modificationName="text", **kwargs)
+        self.save(*args, modificationName="original", **kwargs)
+
+    def file_modifier(self, *args, **kwargs):
+        """
+        changes file contents on git_sync and resets dev context after push
+        requires self.state to contain a modifier dictionary provided by self.pre_sync_hooks,
+        Example dict to be used by self.modify:
+        {'C:/Users/lars/python_venvs/packages/logunittest/Pipfile':
+            {
+                'hookType': 'fileModification',
+                'logunittest': {
+                                'regex': '(logunittest = )({.*})',
+                                'local': {'editable': True, 'path': '.'},
+                                'rm': '{path = "."}'}
+                                }
+            }
+        """
+        self.modify(*args, **kwargs)
+        self.save(*args, modificationName="modified", **kwargs)
 
     def pre_sync_hooks(self, *args, **kwargs):
-        self.state.update(self.update_pipfile_state(*args, **kwargs))
-
-    def update_pipfile_state(self, *args, **kwargs):
-        self.pipFilePath = os.path.join(sts.projectDir, "Pipfile")
-        state = {}
-        pipfileContent = toml.load(self.pipFilePath)
-        pgKeys = pipfileContent["packages"].keys() & sts.availableApps.keys()
-        for pgKey in pgKeys:
-            # if package entry referes to the current package itself, dont modify
-            if pipfileContent["packages"].get(pgKey).get("path") == ".":
-                state[pgKey] = {"regex": f"({pgKey} = )" + r"({.*})"}
-                state[pgKey]["local"] = pipfileContent["packages"][pgKey]
-                state[pgKey]["rm"] = '{path = "."}'
-            else:
-                state[pgKey] = {"regex": f"({pgKey} = )" + r"({.*})"}
-                state[pgKey]["local"] = pipfileContent["packages"][pgKey]
-                gitUrl = (
-                    f"https://{sts.params.get('apiKey')}@{sts.availableApps[pgKey][0]}/{pgKey}.git"
+        for hook in os.listdir(sts.preSyncHooksDir):
+            hookName = os.path.splitext(hook)[0]
+            pipfile_state = importlib.import_module(f"logunittest.pre_sync_hooks.{hookName}")
+            pars = pipfile_state.main(*args, **kwargs)
+            # pars asserts
+            msg = f"pre_sync_hook must return a dictionary, but returned: {type(pars)}"
+            assert type(pars) == dict, f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
+            for k in pars:
+                msg = f"pre_sync_hook dict keys must be existing full filePaths: {k}"
+                assert os.path.isfile(k), f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
+            for k, vs in pars.items():
+                msg = (
+                    f"pre_sync_hook dict values must contain a hookType like: "
+                    f"'hookType': 'fileModification', "
+                    f"but has: {vs.get('hookType')}"
                 )
-                state[pgKey]["rm"] = "{" + f'git = "{gitUrl}"' + "}"
-        return {self.pipFilePath: state}
+                msg = f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}"
+                assert vs.get("hookType") in sts.hookTypes, msg
+
+            self.state.update(pars)
 
     def modify(self, *args, **kwargs):
         """
@@ -57,20 +68,27 @@ class GitSyncContext:
         finds a regex string as defined in self.pre_sync_hooks() and changes it
         """
         for filePath, state in self.state.items():
+            if state.get("hookType") != "fileModification":
+                continue
             with open(filePath, "r") as f:
                 text = f.read()
                 modified = text
+            # loops over all changes and applies them to text
             for k, vs in state.items():
+                if k == "hookType":
+                    continue
                 modified = re.sub(vs["regex"], r"\1" + f"{vs['rm']}", modified)
-            state["text"] = text
+            # file content must be appended to self.state for latter ue
+            state["original"] = text
             state["modified"] = modified
 
     def save(self, *args, modificationName, **kwargs):
         for filePath, state in self.state.items():
-            with open(filePath, "w") as w:
-                w.write(state[modificationName])
-            while not os.path.exists(filePath):
-                continue
+            if os.path.exists(filePath):
+                with open(filePath, "w") as w:
+                    w.write(state[modificationName])
+                while not os.path.exists(filePath):
+                    continue
 
 
 """

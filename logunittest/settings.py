@@ -3,7 +3,7 @@ import json, os
 
 packageDir = os.path.dirname(__file__)
 projectDir = os.path.dirname(packageDir)
-
+preSyncHooksDir = os.path.join(packageDir, "pre_sync_hooks")
 actionsDir = os.path.join(packageDir, "actions")
 logsDir = os.path.join(packageDir, "logs")
 testLogsDir = os.path.expanduser(os.path.join("~/.testlogs"))
@@ -45,3 +45,4 @@ except:
 
 # git_sync source is used in ut.py
 gitSyncCmd = ["powershell.exe", "/Users/lars/python_venvs/prc/git_sync.ps1"]
+hookTypes = ["fileModification"]
