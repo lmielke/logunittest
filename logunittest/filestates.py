@@ -16,10 +16,10 @@ color.init()
 class GitSyncContext:
     def __init__(self, *args, targetDir, **kwargs):
         self.pipfilePath = os.path.join(sts.unalias_path(targetDir), "Pipfile")
-        self.state = self.mk_pipfile_state()
-        self.text, self.modified = self.modify()
 
     def __enter__(self, *args, **kwargs):
+        self.state = self.mk_pipfile_state()
+        self.text, self.modified = self.modify()
         self.save(self.modified, self.pipfilePath)
         return self
 
