@@ -10,8 +10,8 @@ color.init()
 
 def main(*args, **kwargs) -> None:
     with GitSyncContext(*args, **kwargs) as p:
-        for l in p.modified.split("\n"):
-            print(f"{l}")
+        pipFilePath = os.path.join(sts.projectDir, "Pipfile")
+        print(f"{p.state[pipFilePath]['modified']}")
 
 
 if __name__ == "__main__":

@@ -19,15 +19,14 @@ class GitSyncContext:
         self.state = {}
 
     def __enter__(self, *args, **kwargs):
-        print(f"{kwargs = }")
         self.pre_sync_hooks(*args, **kwargs)
-        self.text, self.modified = self.modify()
-        self.save(self.modified, self.pipFilePath)
+        self.modify(*args, **kwargs)
+        self.save(*args, modificationName="modified", **kwargs)
         return self
 
     def __exit__(self, *args, **kwargs):
         if os.path.exists(self.pipFilePath):
-            self.save(self.text, self.pipFilePath)
+            self.save(*args, modificationName="text", **kwargs)
 
     def pre_sync_hooks(self, *args, **kwargs):
         self.state.update(self.update_pipfile_state(*args, **kwargs))
@@ -50,25 +49,28 @@ class GitSyncContext:
                     f"https://{sts.params.get('apiKey')}@{sts.availableApps[pgKey][0]}/{pgKey}.git"
                 )
                 state[pgKey]["rm"] = "{" + f'git = "{gitUrl}"' + "}"
-        return state
+        return {self.pipFilePath: state}
 
     def modify(self, *args, **kwargs):
         """
         reads Pipfile and returns its text as well as a modified version of text
         finds a regex string as defined in self.pre_sync_hooks() and changes it
         """
-        with open(self.pipFilePath, "r") as f:
-            text = f.read()
-            modified = text
-        for k, vs in self.state.items():
-            modified = re.sub(vs["regex"], r"\1" + f"{vs['rm']}", modified)
-        return text, modified
+        for filePath, state in self.state.items():
+            with open(filePath, "r") as f:
+                text = f.read()
+                modified = text
+            for k, vs in state.items():
+                modified = re.sub(vs["regex"], r"\1" + f"{vs['rm']}", modified)
+            state["text"] = text
+            state["modified"] = modified
 
-    def save(self, text, *args, **kwargs):
-        with open(self.pipFilePath, "w") as w:
-            text = w.write(text)
-        while not os.path.exists(self.pipFilePath):
-            continue
+    def save(self, *args, modificationName, **kwargs):
+        for filePath, state in self.state.items():
+            with open(filePath, "w") as w:
+                w.write(state[modificationName])
+            while not os.path.exists(filePath):
+                continue
 
 
 """
