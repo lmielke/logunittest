@@ -33,15 +33,6 @@ availableAppsPath = unalias_path(
 with open(availableAppsPath, "r") as j:
     availableApps = json.load(j)
 
-# params are used to modify pipfile_state in filestates.GitSyncContext.mk_pipfile_state
-params = {}
-try:
-    from joringels.src.actions import fetch
-
-    repoParams = fetch.alloc(entryName="repo_download", retain=True)
-    params.update({"apiKey": repoParams["password"]})
-except:
-    params.update({"apiKey": "oauth2:glpat-PDn2Nftephd5_mGosn4x"})
 
 # git_sync source is used in ut.py
 gitSyncCmd = ["powershell.exe", "/Users/lars/python_venvs/prc/git_sync.ps1"]

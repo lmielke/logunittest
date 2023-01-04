@@ -1,12 +1,14 @@
 import json, os, re, toml
 import logunittest.settings as sts
+from joringels.src.actions import fetch
 
 
-def update_pipfile_sources(pipFilePath, *args, tempRmSource=None, **kwargs):
+def update_pipfile_sources(pipFilePath, *args, tempRmPipfileSource=None, **kwargs):
     pars = {}
     pipfileContent = toml.load(pipFilePath)
     pgKeys = pipfileContent["packages"].keys() & sts.availableApps.keys()
-    if tempRmSource is not None:
+    params = get_secrets(*args, **kwargs)
+    if tempRmPipfileSource is not None:
         for pgKey in pgKeys:
             # if package entry referes to the current package itself, dont modify
             if pipfileContent["packages"].get(pgKey).get("path") == ".":
@@ -17,8 +19,7 @@ def update_pipfile_sources(pipFilePath, *args, tempRmSource=None, **kwargs):
                 pars[pgKey] = {"regex": f"({pgKey} = )" + r"({.*})"}
                 pars[pgKey]["local"] = pipfileContent["packages"][pgKey]
                 gitUrl = (
-                    f"https://{sts.params.get('apiKey')}@"
-                    f"{sts.availableApps[pgKey][0]}/{pgKey}.git"
+                    f"https://{params.get('apiKey')}@" f"{sts.availableApps[pgKey][0]}/{pgKey}.git"
                 )
                 pars[pgKey]["rm"] = "{" + f'git = "{gitUrl}"' + "}"
     return pars
@@ -37,9 +38,20 @@ def update_pipfile_requires(pipFilePath, *args, tempPythonVersion=None, **kwargs
     return pars
 
 
-def main(*args, **kwargs):
+def get_secrets(*args, **kwargs):
+    # params are used to modify pipfile_state in filestates.GitSyncContext.mk_pipfile_state
+    params = {}
+    try:
+        repoParams = fetch.alloc(entryName="repo_download", retain=True)
+        params.update({"apiKey": repoParams["password"]})
+    except:
+        params.update({"apiKey": "Not found"})
+    return params
+
+
+def main(*args, pipFilePath: str = None, **kwargs):
     pars = {"hookType": "fileModification"}
-    pipFilePath = os.path.join(sts.projectDir, "Pipfile")
+    pipFilePath = os.path.join(os.getcwd(), "Pipfile") if pipFilePath is None else pipFilePath
     pars.update(update_pipfile_sources(pipFilePath, *args, **kwargs))
     pars.update(update_pipfile_requires(pipFilePath, *args, **kwargs))
     return {pipFilePath: pars}

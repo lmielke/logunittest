@@ -2,6 +2,7 @@
 import logunittest.settings as sts
 from logunittest.logunittest import ut as ut
 from logunittest.actions import stats as stats
+from logunittest.filestates import GitSyncContext
 from subprocess import Popen
 import os, subprocess, sys
 import configparser
@@ -14,9 +15,7 @@ color.init()
 def main(*args, targetDir, git_sync: bool = False, **kwargs) -> None:
     ut(*args, pgPath=targetDir, **kwargs)
     if git_sync:
-        from logunittest.filestates import GitSyncContext
-
-        kwargs.update({"tempRmSource": True, "tempPythonVersion": "3.9"})
+        kwargs.update({"tempRmPipfileSource": True, "tempPythonVersion": "3.9"})
         comment = add_comment(*args, targetDir=targetDir, **kwargs)
         with GitSyncContext(*args, targetDir=targetDir, **kwargs) as p:
             # print(f"Now pushing with modified Pipfile: {comment}")

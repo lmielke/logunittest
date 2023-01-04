@@ -45,8 +45,8 @@ class GitSyncContext:
     def pre_sync_hooks(self, *args, **kwargs):
         for hook in os.listdir(sts.preSyncHooksDir):
             hookName = os.path.splitext(hook)[0]
-            pipfile_state = importlib.import_module(f"logunittest.pre_sync_hooks.{hookName}")
             try:
+                pipfile_state = importlib.import_module(f"logunittest.pre_sync_hooks.{hookName}")
                 pars = pipfile_state.main(*args, **kwargs)
             except Exception as e:
                 continue
