@@ -14,10 +14,10 @@ color.init()
 def main(*args, targetDir, git_sync: bool = False, **kwargs) -> None:
     ut(pgPath=targetDir)
     if git_sync:
-        from logunittest.filestates import PipFileState
+        from logunittest.filestates import GitSyncContext
 
         comment = add_comment(*args, targetDir=targetDir, **kwargs)
-        with PipFileState(*args, targetDir=targetDir, **kwargs) as p:
+        with GitSyncContext(*args, targetDir=targetDir, **kwargs) as p:
             # print(f"Now pushing with modified Pipfile: {comment}")
             sts.gitSyncCmd.extend([f'"{targetDir}"', f'"{comment}"'])
             p = Popen(sts.gitSyncCmd, cwd=targetDir, stdout=sys.stdout)

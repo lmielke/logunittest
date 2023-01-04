@@ -1,8 +1,6 @@
 # standard lib imports
 import os, re, shutil, subprocess, sys, time
 
-print(sys.executable)
-print(f"{os.getcwd() = }")
 import colorama as color
 
 color.init()

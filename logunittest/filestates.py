@@ -13,7 +13,7 @@ color.init()
 # logunittest = {editable = true, path = "/Users/Lars/python_venvs/packages/logunittest"}
 
 
-class PipFileState:
+class GitSyncContext:
     def __init__(self, *args, targetDir, **kwargs):
         self.pipfilePath = os.path.join(sts.unalias_path(targetDir), "Pipfile")
         self.state = self.mk_pipfile_state()
