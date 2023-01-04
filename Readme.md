@@ -20,6 +20,8 @@ logunittest = {git = "https://gitlab.com/larsmielke2/logunittest.git"}
     lut $action -p --targetDir [/dir/to/tgt] actions: info, ut
     # Example
     lut ut -p '.'
+    lut ut -g # will commit chanes using git_sync
+    lut ut -g -m 'add a git comment' #default: 'lut push with auto-comment [all:2 ok:2 err:0]'
 ```
 NOTE: if targetDir is omitted os.getcwd() is used
 

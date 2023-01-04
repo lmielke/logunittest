@@ -8,7 +8,7 @@ colorama = "*"
 pyyaml = "*"
 requests = "*"
 tabulate = "*"
-logunittest = {editable = true, path = "."}
+logunittest = {path = "."}
 
 [dev-packages]
 black = "*"

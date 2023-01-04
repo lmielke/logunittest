@@ -7,9 +7,9 @@ repos:
   # pyhton -m unittest
   - repo: local
     hooks:
-      - id: unittests
-        name: run unit tests
+      - id: unittest
+        name: unittest
         entry: python -m unittest
         language: system
         pass_filenames: false
-        # args: ["discover"]
+        args: ["discover"]
