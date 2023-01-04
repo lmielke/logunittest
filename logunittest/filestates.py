@@ -16,9 +16,10 @@ color.init()
 class GitSyncContext:
     def __init__(self, *args, targetDir, **kwargs):
         self.pipfilePath = os.path.join(sts.unalias_path(targetDir), "Pipfile")
+        self.state = {}
 
     def __enter__(self, *args, **kwargs):
-        self.state = self.mk_pipfile_state()
+        self.pre_sync_hooks(*args, **kwargs)
         self.text, self.modified = self.modify()
         self.save(self.modified, self.pipfilePath)
         return self
@@ -27,7 +28,10 @@ class GitSyncContext:
         if os.path.exists(self.pipfilePath):
             self.save(self.text, self.pipfilePath)
 
-    def mk_pipfile_state(self, *args, **kwargs):
+    def pre_sync_hooks(self, *args, **kwargs):
+        self.state.update(self.update_pipfile_state(*args, **kwargs))
+
+    def update_pipfile_state(self, *args, **kwargs):
         state = {}
         pipfileContent = toml.load(self.pipfilePath)
         pgKeys = pipfileContent["packages"].keys() & sts.availableApps.keys()
@@ -49,7 +53,7 @@ class GitSyncContext:
     def modify(self, *args, **kwargs):
         """
         reads Pipfile and returns its text as well as a modified version of text
-        finds a regex string as defined in self.mk_pipfile_state() and changes it
+        finds a regex string as defined in self.pre_sync_hooks() and changes it
         """
         with open(self.pipfilePath, "r") as f:
             text = f.read()
