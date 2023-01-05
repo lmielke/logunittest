@@ -21,7 +21,7 @@ class UnitTest(unittest.TestCase):
     def setUpClass(cls, *args, **kwargs):
         cls.verbose = 0
         cls.testData = cls.mk_test_data(*args, **kwargs)
-        cls.logFile = os.path.join(sts.testDataDir, "logunittest_2022-12-01-10-06-10-162984.log")
+        cls.logFile = os.path.join(sts.testDataDir, "logunittest_2022-12-01-10-06-10-162984.txt")
 
     @classmethod
     def tearDownClass(cls, *args, **kwargs):

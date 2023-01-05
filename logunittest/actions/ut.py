@@ -4,7 +4,7 @@ from logunittest.logunittest import ut as ut
 from logunittest.actions import stats as stats
 from logunittest.filestates import GitSyncContext
 from subprocess import Popen
-import os, subprocess, sys
+import os, subprocess, sys, time
 import configparser
 
 import colorama as color
@@ -19,6 +19,7 @@ def main(*args, targetDir, git_sync: bool = False, **kwargs) -> None:
         comment = add_comment(*args, targetDir=targetDir, **kwargs)
         with GitSyncContext(*args, targetDir=targetDir, **kwargs) as p:
             # print(f"Now pushing with modified Pipfile: {comment}")
+            time.sleep(1)
             sts.gitSyncCmd.extend([f'"{targetDir}"', f'"{comment}"'])
             p = Popen(sts.gitSyncCmd, cwd=targetDir, stdout=sys.stdout)
             p.communicate()

@@ -1,0 +1,29 @@
+12-01 10:06 INFO logunittest - run_unittest: summary: [all:20 ok:19 err:1]
+Loading .env environment variables...
+C:\Users\lars\python_venvs\libs\joringels\joringels\src\auth_checker.py:30: ResourceWarning: unclosed <socket.socket fd=300, family=AddressFamily.AF_INET, type=SocketKind.SOCK_DGRAM, proto=0, laddr=('192.168.0.174', 61959), raddr=('8.8.8.8', 80)>
+  authIp = soc.get_local_ip()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+............F...C:\Users\lars\python_venvs\libs\joringels\joringels\src\get_soc.py:55: ResourceWarning: unclosed <socket.socket fd=332, family=AddressFamily.AF_INET, type=SocketKind.SOCK_DGRAM, proto=0, laddr=('192.168.0.174', 61960), raddr=('8.8.8.8', 80)>
+  host = get_local_ip()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\lars\python_venvs\libs\joringels\joringels\src\get_soc.py:55: ResourceWarning: unclosed <socket.socket fd=332, family=AddressFamily.AF_INET, type=SocketKind.SOCK_DGRAM, proto=0, laddr=('192.168.0.174', 61961), raddr=('8.8.8.8', 80)>
+  host = get_local_ip()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\lars\python_venvs\libs\joringels\joringels\src\get_soc.py:55: ResourceWarning: unclosed <socket.socket fd=332, family=AddressFamily.AF_INET, type=SocketKind.SOCK_DGRAM, proto=0, laddr=('192.168.0.174', 61962), raddr=('8.8.8.8', 80)>
+  host = get_local_ip()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..C:\Users\lars\python_venvs\libs\joringels\joringels\src\auth_checker.py:30: ResourceWarning: unclosed <socket.socket fd=332, family=AddressFamily.AF_INET, type=SocketKind.SOCK_DGRAM, proto=0, laddr=('192.168.0.174', 61963), raddr=('8.8.8.8', 80)>
+  authIp = soc.get_local_ip()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..
+======================================================================
+FAIL: test__get_recent_logfile (joringels.test.test_joringels.UnitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\lars\python_venvs\libs\joringels\joringels\test\test_joringels.py", line 74, in test__get_recent_logfile
+    self.assertIn("INFO log_unittest - run_unittest", text)
+AssertionError: 'INFO log_unittest - run_unittest' not found in 'No logfiles found'
+----------------------------------------------------------------------
+Ran 20 tests in 1.681s
+FAILED (failures=1)
+
