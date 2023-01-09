@@ -9,7 +9,7 @@ color.init()
 
 
 def main(*args, targetDir=None, **kwargs) -> None:
-    kwargs.update({"tempRmPipfileSource": True, "tempPythonVersion": "3.10"})
+    kwargs.update({"tempRmPipfileSource": True, "tempPythonVersion": "3.11"})
     targetDir = os.getcwd() if targetDir is None else targetDir
     pipFilePath = os.path.join(targetDir, "Pipfile")
     with GitSyncContext(*args, pipFilePath=pipFilePath, **kwargs) as p:
