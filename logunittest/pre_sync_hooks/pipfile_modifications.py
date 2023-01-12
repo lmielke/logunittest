@@ -35,7 +35,6 @@ def get_pre_commit_params(pipFileContent, *args, **kwargs):
     # print(f"get_pre_commit_params: {preCommitData = }")
     for key, vs in preCommitData.items():
         section, param = key.split("_", 1)
-        print(f"{section = }")
         msg = f"param: {key} must be prefixed like [pre-commit] requires_{key}"
         assert section in pipFileContent.keys(), f"{color.Fore.YELLOW}{msg}{color.Style.RESET_ALL}"
         if not preCommitParams.get(section):
