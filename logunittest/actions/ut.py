@@ -15,7 +15,7 @@ color.init()
 def main(*args, targetDir, git_sync: bool = False, **kwargs) -> None:
     ut(*args, pgPath=targetDir, **kwargs)
     if git_sync:
-        kwargs.update({"tempRmPipfileSource": True, "tempPythonVersion": "3.9"})
+        kwargs.update({"tempRmPipfileSource": True})
         comment = add_comment(*args, targetDir=targetDir, **kwargs)
         with GitSyncContext(*args, targetDir=targetDir, **kwargs) as p:
             # print(f"Now pushing with modified Pipfile: {comment}")

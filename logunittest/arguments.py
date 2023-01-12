@@ -44,7 +44,7 @@ def mk_args():
         nargs=None,
         const=None,
         type=str,
-        default='.',
+        default=".",
         help="package directory to be run",
     )
 
@@ -57,6 +57,17 @@ def mk_args():
         type=str,
         default=None,
         help="if tested suceessfully, the package can be pushed to git with a comment",
+    )
+
+    parser.add_argument(
+        "-py",
+        "--python_version",
+        required=False,
+        nargs=None,
+        const=None,
+        type=str,
+        default=None,
+        help='overwrite python_version = "3.11" with your desired target version, i.e. 3.9"',
     )
 
     parser.add_argument(

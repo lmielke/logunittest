@@ -27,7 +27,7 @@ class GitSyncContext:
     def file_modifier(self, *args, **kwargs):
         """
         changes file contents on git_sync and resets dev context after push
-        requires self.state to contain a modifier dictionary provided by self.pre_sync_hooks,
+        python_version self.state to contain a modifier dictionary provided by self.pre_sync_hooks,
         Example dict to be used by self.modify:
         {'C:/Users/lars/python_venvs/packages/logunittest/Pipfile':
             {
@@ -49,6 +49,7 @@ class GitSyncContext:
                 pipfile_state = importlib.import_module(f"logunittest.pre_sync_hooks.{hookName}")
                 pars = pipfile_state.main(*args, **kwargs)
             except Exception as e:
+                print(f"filestats.pre_sync_hooks: {e = }")
                 continue
             self.verify_hook_pars(pars, *args, **kwargs)
             self.state.update(pars)

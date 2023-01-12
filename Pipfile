@@ -17,4 +17,10 @@ toml = "*"
 joringels = {editable = true, path = "/Users/Lars/python_venvs/libs/joringels"}
 
 [requires]
-python_version = "3.9"
+python_version = "3.11"
+
+[pre-commit]
+requires_python_version = "3.11"
+
+[scripts]
+push = "lut ut -g"
