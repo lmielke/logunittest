@@ -12,4 +12,5 @@ def checks(*args, **kwargs):
 
 
 def warn_deletion(*args, action, **kwargs):
-    print(f"srs.contracts.action: {action}")
+    pass
+    # print(f"srs.contracts.action: {action}")

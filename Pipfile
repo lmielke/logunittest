@@ -23,4 +23,4 @@ python_version = "3.11"
 requires_python_version = "3.11"
 
 [scripts]
-push = "lut ut -g"
+git_sync = "lut ut -g"
