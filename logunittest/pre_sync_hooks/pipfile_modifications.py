@@ -7,7 +7,7 @@ color.init()
 
 
 def update_pipfile_sources(
-    pipFileContent, preCommitParams, params, *args, tempRmPipfileSource=None, **kwargs
+    pipFileContent, preCommitParams, *args, tempRmPipfileSource=None, **kwargs
 ):
     pars = {}
     pgKeys = pipFileContent["packages"].keys() & sts.availableApps.keys()
@@ -21,22 +21,20 @@ def update_pipfile_sources(
             else:
                 pars[pgKey] = {"regex": f"({pgKey} = )" + r"({.*})"}
                 pars[pgKey]["local"] = pipFileContent["packages"][pgKey]
-                gitUrl = (
-                    f"https://{params.get('apiKey')}@" f"{sts.availableApps[pgKey][0]}/{pgKey}.git"
-                )
+                token = "${GIT_ACCESS_TOKEN}"
+                gitUrl = f"https://{token}@{sts.availableApps[pgKey][0]}/{pgKey}.git"
                 pars[pgKey]["rm"] = "{" + f'git = "{gitUrl}"' + "}"
     return pars
 
 
 def get_pre_commit_params(pipFileContent, *args, **kwargs):
-    preCommitData, preCommitParams = pipFileContent.get("pre-commit", {}), {}
-    # print(f"get_pre_commit_params: {pipFileContent = }")
-    # print(f"get_pre_commit_params: {kwargs = }")
-    # print(f"get_pre_commit_params: {preCommitData = }")
+    preCommitData, preCommitParams = pipFileContent.get("scripts", {}), {}
     for key, vs in preCommitData.items():
         section, param = key.split("_", 1)
-        msg = f"param: {key} must be prefixed like [pre-commit] requires_{key}"
-        assert section in pipFileContent.keys(), f"{color.Fore.YELLOW}{msg}{color.Style.RESET_ALL}"
+        if not section in pipFileContent.keys():
+            msg = f"\nkey:\t{key}: {vs}\tnot part of {pipFileContent.keys()}! removing"
+            print(f"{color.Fore.YELLOW}{msg}{color.Style.RESET_ALL}")
+            continue
         if not preCommitParams.get(section):
             preCommitParams[section] = {param: vs}
         else:
@@ -47,12 +45,11 @@ def get_pre_commit_params(pipFileContent, *args, **kwargs):
 def get_sources(pipFilePath, *args, **kwargs):
     pipFileContent = toml.load(pipFilePath)
     preCommitParams = get_pre_commit_params(pipFileContent, *args, **kwargs)
-    params = get_secrets(*args, **kwargs)
-    sources, kwargs = prep_sources(pipFileContent, preCommitParams, params, *args, **kwargs)
+    sources, kwargs = prep_sources(pipFileContent, preCommitParams, *args, **kwargs)
     return sources, kwargs
 
 
-def prep_sources(pipFileContent, preCommitParams, params, *args, **kwargs):
+def prep_sources(pipFileContent, preCommitParams, *args, **kwargs):
     """
     this takes parameter i.e. [pre-commit] and adds them to relevant sources i.e. kwargs
     to be used in update pipfile
@@ -73,11 +70,11 @@ def prep_sources(pipFileContent, preCommitParams, params, *args, **kwargs):
                     msg = f"\nOverwriting [{key}] {k}: {kwargs[k]} -> {v}\n"
                     print(f"{color.Fore.YELLOW}{msg}{color.Style.RESET_ALL}")
                     kwargs[k] = v
-    return (pipFileContent, preCommitParams, params), kwargs
+    return (pipFileContent, preCommitParams), kwargs
 
 
 def update_pipfile_python_version(
-    pipFileContent, preCommitParams, params, *args, python_version=None, **kwargs
+    pipFileContent, preCommitParams, *args, python_version=None, **kwargs
 ):
     """changes Pipfile
     EXAMPLE,
@@ -103,17 +100,6 @@ def update_pipfile_python_version(
             pars[pgKey]["local"] = f'python_version = "{existing}"'
             pars[pgKey]["rm"] = f'"{python_version}"'
     return pars
-
-
-def get_secrets(*args, **kwargs):
-    # params are used to modify pipfile_state in filestates.GitSyncContext.mk_pipfile_state
-    params = {}
-    try:
-        repoParams = fetch.alloc(entryName="repo_download", retain=True)
-        params.update({"apiKey": repoParams["password"]})
-    except:
-        params.update({"apiKey": "Not found"})
-    return params
 
 
 def main(*args, pipFilePath: str = None, **kwargs):

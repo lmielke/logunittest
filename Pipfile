@@ -19,8 +19,7 @@ joringels = {editable = true, path = "/Users/Lars/python_venvs/libs/joringels"}
 [requires]
 python_version = "3.11"
 
-[pre-commit]
-requires_python_version = "3.11"
-
 [scripts]
 git_sync = "lut ut -g"
+requires_python_version = "3.11"
+
