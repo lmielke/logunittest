@@ -14,12 +14,10 @@ logunittest = {path = "."}
 black = "*"
 pre-commit = "*"
 toml = "*"
-joringels = {editable = true, path = "/Users/Lars/python_venvs/libs/joringels"}
+joringels = {git = "https://${GIT_ACCESS_TOKEN}@gitlab.com/larsmielke2/joringels.git"}
 
 [requires]
 python_version = "3.11"
 
 [scripts]
 git_sync = "lut ut -g"
-requires_python_version = "3.11"
-

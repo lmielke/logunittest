@@ -10,26 +10,29 @@ def update_pipfile_sources(
     pipFileContent, preCommitParams, *args, tempRmPipfileSource=None, **kwargs
 ):
     pars = {}
-    pgKeys = pipFileContent["packages"].keys() & sts.availableApps.keys()
-    if tempRmPipfileSource is not None:
-        for pgKey in pgKeys:
-            # if package entry referes to the current package itself, dont modify
-            if pipFileContent["packages"].get(pgKey).get("path") == ".":
-                pars[pgKey] = {"regex": f"({pgKey} = )" + r"({.*})"}
-                pars[pgKey]["local"] = pipFileContent["packages"][pgKey]
-                pars[pgKey]["rm"] = '{path = "."}'
-            else:
-                pars[pgKey] = {"regex": f"({pgKey} = )" + r"({.*})"}
-                pars[pgKey]["local"] = pipFileContent["packages"][pgKey]
-                token = "${GIT_ACCESS_TOKEN}"
-                gitUrl = f"https://{token}@{sts.availableApps[pgKey][0]}/{pgKey}.git"
-                pars[pgKey]["rm"] = "{" + f'git = "{gitUrl}"' + "}"
+    for block in ["packages", "dev-packages"]:
+        pgKeys = pipFileContent[block].keys() & sts.availableApps.keys()
+        if tempRmPipfileSource is not None:
+            for pgKey in pgKeys:
+                # if package entry referes to the current package itself, dont modify
+                if pipFileContent[block].get(pgKey).get("path") == ".":
+                    pars[pgKey] = {"regex": f"({pgKey} = )" + r"({.*})"}
+                    pars[pgKey]["local"] = pipFileContent[block][pgKey]
+                    pars[pgKey]["rm"] = '{path = "."}'
+                else:
+                    pars[pgKey] = {"regex": f"({pgKey} = )" + r"({.*})"}
+                    pars[pgKey]["local"] = pipFileContent[block][pgKey]
+                    token = "${GIT_ACCESS_TOKEN}"
+                    gitUrl = f"https://{token}@{sts.availableApps[pgKey][0]}/{pgKey}.git"
+                    pars[pgKey]["rm"] = "{" + f'git = "{gitUrl}"' + "}"
     return pars
 
 
 def get_pre_commit_params(pipFileContent, *args, **kwargs):
     preCommitData, preCommitParams = pipFileContent.get("scripts", {}), {}
     for key, vs in preCommitData.items():
+        if not "_" in key:
+            continue
         section, param = key.split("_", 1)
         if not section in pipFileContent.keys():
             msg = f"\nkey:\t{key}: {vs}\tnot part of {pipFileContent.keys()}! removing"
