@@ -11,7 +11,7 @@ precommittest:
   when: manual
   allow_failure: true
   tags:
-        - test
+        - precommittest
   script:
     - python -m unittest
 
