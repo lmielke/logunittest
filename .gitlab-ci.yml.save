@@ -16,15 +16,10 @@ precommittest:
     - python -m unittest
 
 unittest:
-  stage: test
   image: python:3.11
-  services:
-    - docker:dind
-  variables:
-    DOCKER_DRIVER: overlay2 # not sure if this is needed
-    DOCKER_TLS_CERTDIR: "/certs"
+  stage: test
   tags:
-        - test
+	        - test
   script:
     - pip3 install pipenv
     - echo Y | pipenv install
