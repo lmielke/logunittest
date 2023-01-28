@@ -43,7 +43,7 @@ def main(*args, **kwargs):
 
     # kwargs are vakidated against enforced contract
     kwargs = contracts.checks(*args, **kwargs)
-    if kwargs.get('action') != 'help':
+    if kwargs.get("action") != "help":
         return runable(*args, **kwargs).main(*args, **kwargs)
 
 

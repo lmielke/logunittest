@@ -4,8 +4,13 @@ import json, os
 packageDir = os.path.dirname(__file__)
 projectDir = os.path.dirname(packageDir)
 preSyncHooksDir = os.path.join(packageDir, "pre_sync_hooks")
+if not os.path.exists(preSyncHooksDir):
+    os.makedirs(preSyncHooksDir)
 actionsDir = os.path.join(packageDir, "actions")
 logsDir = os.path.join(packageDir, "logs")
+if not os.path.exists(logsDir):
+    os.makedirs(logsDir)
+
 testLogsDir = os.path.expanduser(os.path.join("~/.testlogs"))
 ressourcesDir = os.path.join(packageDir, "ressources")
 
