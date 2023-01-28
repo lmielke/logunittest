@@ -1,6 +1,6 @@
 # standard lib imports
 import os, re, shutil, subprocess, sys, time
-
+from subprocess import STDOUT, check_output
 import colorama as color
 
 color.init()
@@ -51,7 +51,7 @@ class UnitTest(unittest.TestCase):
             "2>&1",
         ]
         out = subprocess.Popen(cmds, shell=True, stdout=subprocess.PIPE)
-        self.assertTrue(re.match(expected, out.communicate()[0].decode("utf-8")))
+        self.assertTrue(re.match(expected, out.communicate(timeout=5)[0].decode("utf-8")))
 
 
 if __name__ == "__main__":
