@@ -30,4 +30,4 @@ unittest:
     - echo $(cat /etc/lsb-release)
     - echo $PWD
     - echo ls -la
-    - docker images
+    - docker run -it --rm --ip 172.18.0.9 --network illuminati lmielke/unittests:latest unittest logunittest no-update
