@@ -121,7 +121,7 @@ Parameters are as follows (provided as '*args' no commas ):
 
 Example:
 ```
-    # docker run unittest for joringels noUpdate
+    # docker run unittest for joringels no-update
     docker run -it --rm --ip 172.18.0.9 --network illuminati 2023-01-31_experimental_logunittest_up unittest joringels no-update
     # using the dockerhub image
     docker run -it --rm --ip 172.18.0.9 --network illuminati lmielke/unittests:latest unittest logunittest no-update
