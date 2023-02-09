@@ -10,15 +10,16 @@ import colorama as color
 color.init()
 
 
-def infos(pgPath, pgName, *args, **kwargs):
-    msg = f"""\n{f" {pgName.upper()} USER info ":#^80}"""
+def infos(path, name, *args, **kwargs):
+    msg = f"""\n{f" {name.upper()} USER info ":#^80}"""
     print(f"{color.Fore.GREEN}{msg}{color.Style.RESET_ALL}")
-    with open(os.path.join(pgPath, "setup.cfg"), "r") as f:
+    with open(os.path.join(path, "setup.cfg"), "r") as f:
         info = f.read()
     print(f"info: \n{info}")
 
 
 def main(*args, **kwargs):
+    print(f"{kwargs = }")
     c = Coverage(*args, **kwargs)
     print(f"Coverage.pgName: {c.pgName}")
     print(f"Coverage.get_sorted_logfiles():")

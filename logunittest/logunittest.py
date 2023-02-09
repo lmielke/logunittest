@@ -148,11 +148,11 @@ def get_package(*args, pgPath: str = None, **kwargs) -> str:
     return pgPath, pgName
 
 
-def get_package_path(*args, packageName: str = None, pgPath: str = None, **kwargs) -> str:
-    if (pgPath is None or pgPath == ".") and packageName is None:
+def get_package_path(*args, pgName: str = None, pgPath: str = None, **kwargs) -> str:
+    if (pgPath is None or pgPath == ".") and pgName is None:
         pgPath = sts.unalias_path(".")
-    elif packageName is not None:
-        pgPath = os.path.expanduser(sts.availableApps.get(packageName)[1])
+    elif pgName is not None:
+        pgPath = os.path.expanduser(sts.availableApps.get(pgName)[1])
     return pgPath
 
 
@@ -162,13 +162,16 @@ def get_package_name(*args, pgPath: str = None, **kwargs):
         with open(setupFile, "r") as s:
             setupText = s.read()
         match = re.search(r"(name = )(.*)", setupText)
+    else:
+        msg = f"File not found: {setupFile}"
     if match:
         out = match.group(2)
         return out
     else:
         raise Exception(
             f"logunittest.UnitTestWithLogging.get_package_path, "
-            f"Package name could not be derrived!"
+            f"Package name could not be derrived! "
+            f"\n{msg}"
         )
 
 

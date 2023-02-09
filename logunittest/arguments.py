@@ -17,7 +17,7 @@ def mk_args():
 
     parser.add_argument(
         "-n",
-        "--packageName",
+        "--pgName",
         required=False,
         nargs=None,
         const=None,
@@ -34,7 +34,7 @@ def mk_args():
         const=None,
         type=str,
         default=None,
-        help="alias you call the future package with, if left blank packageName[:6] is used",
+        help="alias you call the future package with, if left blank pgName[:6] is used",
     )
 
     parser.add_argument(
