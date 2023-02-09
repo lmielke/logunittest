@@ -1,4 +1,4 @@
-# info.py
+# stats.py
 import re
 import logunittest.settings as sts
 from logunittest.logunittest import Coverage

@@ -76,6 +76,7 @@ On your local machine:
     cda $base
     python .\modules\os_setup\droplet\mkandinstall.py all -prc microservice -con scp -pd runners -cn testing -n testserver -pr runners -d
 ```
+You can interrupt the install after the droplet was created, before base installs begin.
 
 Inside runners droplet:
 ```

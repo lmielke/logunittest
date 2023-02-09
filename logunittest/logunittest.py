@@ -9,12 +9,9 @@ import logunittest.logger as logger
 
 
 class UnitTestWithLogging:
-    def __init__(self, *args, pgPath: str = None, **kwargs) -> None:
-        if pgPath is None:
-            pgPath = "."
-        self.pgPath = pgPath
+    def __init__(self, *args, **kwargs) -> None:
+        self.pgPath, self.pgName = get_package(*args, **kwargs)
         self.timeStamp = re.sub(r"([:. ])", r"-", str(dt.now()))
-        self.pgName = get_package_name(pgPath, *args, pgPath=pgPath, **kwargs)
         self.logDir = self.mk_log_dir(*args, **kwargs)
         # self.logDir = Coverage.get_log_dir(self.pgName, **kwargs)
         assert os.path.isdir(self.logDir), f"logDir: {self.logDir} does not exist !"
@@ -80,7 +77,7 @@ class Coverage:
     """
 
     def __init__(self, *args, logDir: str = None, **kwargs):
-        self.pgName = get_package_name(*args, **kwargs)
+        self.pgPath, self.pgName = get_package(*args, **kwargs)
         self.logDir = os.path.join(os.path.expanduser("~/.testlogs"), self.pgName)
         # self.logDir = Coverage.get_log_dir(self.pgName, **kwargs)
         self.regex = r"([0-9 :-]*)( INFO logunittest .* summary: )(\[.*\])"
@@ -145,9 +142,21 @@ class Coverage:
         return self.get_stats()
 
 
-def get_package_name(*args, pgPath: str = None, **kwargs) -> str:
-    if pgPath is None:
+def get_package(*args, pgPath: str = None, **kwargs) -> str:
+    pgPath = get_package_path(*args, pgPath, **kwargs)
+    pgName = get_package_name(*args, pgPath=pgPath, **kwargs)
+    return pgPath, pgName
+
+
+def get_package_path(*args, packageName: str = None, pgPath: str = None, **kwargs) -> str:
+    if (pgPath is None or pgPath == ".") and packageName is None:
         pgPath = sts.unalias_path(".")
+    elif packageName is not None:
+        pgPath = os.path.expanduser(sts.availableApps.get(packageName)[1])
+    return pgPath
+
+
+def get_package_name(*args, pgPath: str = None, **kwargs):
     setupFile, match = os.path.join(pgPath, "setup.cfg"), None
     if os.path.exists(setupFile):
         with open(setupFile, "r") as s:
@@ -158,7 +167,7 @@ def get_package_name(*args, pgPath: str = None, **kwargs) -> str:
         return out
     else:
         raise Exception(
-            f"logunittest.UnitTestWithLogging.get_package_name, "
+            f"logunittest.UnitTestWithLogging.get_package_path, "
             f"Package name could not be derrived!"
         )
 
