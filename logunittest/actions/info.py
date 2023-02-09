@@ -20,6 +20,7 @@ def infos(path, name, *args, **kwargs):
 
 def main(*args, **kwargs):
     print(f"{kwargs = }")
+    print(f"{sys.executable = }")
     c = Coverage(*args, **kwargs)
     print(f"Coverage.pgName: {c.pgName}")
     print(f"Coverage.get_sorted_logfiles():")
