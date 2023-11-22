@@ -1,6 +1,6 @@
 # logunittest
 <b>PIPENV enabled 'pytest' logging tool. </b>
- 
+
 Runs and logs your test results from pytest. Assumes <b>Pipenv environment</b> and 
 tests for single or multiple packages using <b>'pytest'</b>.
 Also, tests can be run in a tox style using multiple python versions. Additionally you can
@@ -30,7 +30,6 @@ NOTE: You cannot have a .venv directory within your project directory as it will
 My main objective was to have a non blocking testing mechanism within a CI/CD chain. Test results are logged and any subsequent actions are derrived from the created logs.
 Also I didnt get tox to properly install and activate multiple test environments without interferring with my development environment. This application installs pipenvs the tox way but also creates relevant temp files and changes relevant parameters to properly activate them. 
 
-<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar" class="plain" height="100px" width="700px">
 
 ## Steps to setup
 1. get and install logunittest
@@ -80,6 +79,9 @@ unittest summary: [all:7 ok:7 err:0]
 ## logfile head
 - fileHead can be extracted using logunittest.py.Coverage
 - see test_logunittest.py for examples
+
+<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar" class="plain" height="100px" width="700px">
+<b>Example log file extract used in terminal</b>
 
 ## Developer info
 ### logunittest
