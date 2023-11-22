@@ -6,7 +6,8 @@ tests for single or multiple packages using <b>'pytest'</b>.
 Also, tests can be run in a tox style using multiple python versions. Additionally you can
 group tests together in order to test dependency packages that you controll.
 
-<img src="https://drive.google.com/uc?id=1C8LBRduuHTgN8tWDqna_eH5lvqhTUQR4" alt="me_happy" class="plain" height="150px" width="220px">
+<img src="https://drive.google.com/uc?id=1CE0ufO4ZjEAV1oimV_23WqpGBzyymFRQ" alt="logunittest" class="plain" height="300px" width="440px">
+
 
 ### run in Terminal
 ```
