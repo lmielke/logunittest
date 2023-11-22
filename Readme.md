@@ -1,5 +1,6 @@
 # logunittest
-PIPENV enabled 'pytest' logging tool. 
+<b>PIPENV enabled 'pytest' logging tool. </b>
+ 
 Runs and logs your test results from pytest. Assumes <b>Pipenv environment</b> and 
 tests for single or multiple packages using <b>'pytest'</b>.
 Also, tests can be run in a tox style using multiple python versions. Additionally you can
@@ -39,14 +40,14 @@ Also I didnt get tox to properly install and activate multiple test environments
 The tests will be run and test results are logged inside the created log file.
 
 # get and install
-```
-    git clone git@gitlab.com:larsmielke2/logunittest.git
+```shell
+    git clone git@github.com:lmielke/logunittest.git
 
 ```
 
 ## Pipfile [packages]
 Directly install from git via the Pipfile entry below.
-logunittest = \{git = "https://gitlab.com/larsmielke2/logunittest.git"\}
+logunittest = \{git = "git@github.com:lmielke/logunittest.git"\}
 
 
 ## Tox.ini example
@@ -84,16 +85,22 @@ unittest summary: [all:7 ok:7 err:0]
 ### logunittest
 - logunittest/\__main__.py is entry point and calls a module from logunittest.actions
 - 'lut ut' will os.chdir() into the pgDir and then run your tests
-- 'pipenv run python -m unittest' within the pgDir or 'pytest' will be called
+- tests will be run using subprocess call and stdout and stderr are returned
 
 ## Runntime states
-During testing logunittest will temporarily change some settings within your project.
+During testing logunittest will temporarily change some settings within your pipenv project.
 1. lut tox will create a .tox directory where your testable environments are installed.
 2. A .venv file is created/changed so that 'pipenv run' can find the test environment for every test form envList that will be run. See tox.ini
 3. The Pipfile is changed. Insid the \[requires\] block the python_version parameter is changed to the current python version (i.e. py3.11) to be tested. See tox.ini
 
 All the file changes will be reversed after the test is finished. In case of errors you might check these files for any residuals. (Pipfile, .venv, .tox)
-The .tox directory will remain and can be reused by logunittest multiple times. (In case of errors you can always remove the .tox directory and subdirectories 'rm .tox \[-r -force\]')
+The .tox directory will remain intact and will be reused for subsequent tests. (In case of errors you can always remove the .tox directory and subdirectories 'rm .tox \[-r -force\]')
+
+Run like:
+```shell
+    cd yourPackageDir
+    lut tox
+```
 
 ## Coverage Infos
 To display some stats from last tests use "lut stats" command.
@@ -105,7 +112,7 @@ Tests can be grouped together in order to test dependency packages you own and c
 - in tox.ini \[logunittest\] add a pgList i.e. pgList = ~/python_venvs/packages/package1, ...)
 
 You can then run logunittest like so:
-```
+```shell
     lut ut -a my_app
 ```
 This will test the package and also the dependencies as specified in pgList. The test results will be logged in the apps log directories.
