@@ -29,7 +29,7 @@ NOTE: You cannot have a .venv directory within your project directory as it will
 My main objective was to have a non blocking testing mechanism within a CI/CD chain. Test results are logged and any subsequent actions are derrived from the created logs.
 Also I didnt get tox to properly install and activate multiple test environments without interferring with my development environment. This application installs pipenvs the tox way but also creates relevant temp files and changes relevant parameters to properly activate them. 
 
-<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar" class="plain" height="150px" width="620px">
+<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar" class="plain" height="100px" width="700px">
 
 ## Steps to setup
 1. get and install logunittest
