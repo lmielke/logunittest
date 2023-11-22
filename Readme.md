@@ -1,8 +1,7 @@
 # logunittest
-<b>PIPENV enabled 'pytest' logging tool. </b>
+<b>PIPENV enabled 'pytest' automation and logging tool. </b>
 
-Runs and logs your test results from pytest. Assumes <b>Pipenv environment</b> and 
-tests for single or multiple packages using <b>'pytest'</b>.
+Test runner and looger that makes your testing day a delight. Assumes <b>Pipenv environment</b> and tests for single or multiple packages using <b>'pytest'</b>.
 Also, tests can be run in a tox style using multiple python versions. Additionally you can
 group tests together in order to test dependency packages that you controll.
 
