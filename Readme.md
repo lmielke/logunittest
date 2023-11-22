@@ -1,21 +1,23 @@
 # logunittest
-Runs and logs your test results from pytest or unittest. Assumes <b>Pipenv environment</b> and 
-tests that can be run via <b>'python -m unittest'</b> or <b>'pytest'</b> command. 
+PIPENV enabled 'pytest' logging tool. 
+Runs and logs your test results from pytest. Assumes <b>Pipenv environment</b> and 
+tests for single or multiple packages using <b>'pytest'</b>.
 Also, tests can be run in a tox style using multiple python versions. Additionally you can
-group tests together in order to test dependency packages.
+group tests together in order to test dependency packages that you controll.
 
 <img src="https://drive.google.com/uc?id=1C8LBRduuHTgN8tWDqna_eH5lvqhTUQR4" alt="me_happy" class="plain" height="150px" width="220px">
 
 ### run in Terminal
 ```
     lut $action -p --pgDir [/dir/to/tgt] -m comment-c | actions: info, ut, tox
-    
+
     # Examples
     lut ut [-m "comment to be added to log file"] [-c cleanup logs] [-p pgDir]
     lut tox (note -m does not work with the tox action)
     lut stats
 ```
 NOTE: if pgDir is omitted os.getcwd() is used
+NOTE: if you use the -p pgDir option, you can run 'pytest' for any package targeted by pgDir
 After running lut, the test results are logged in the settings.defaultLogDir directory.
 
 ## System preconditions
@@ -74,8 +76,9 @@ unittest summary: [all:7 ok:7 err:0]
 
 ## Developer info
 ### logunittest
-- logunittest/\__main__.py serves as the lut entry point and calls module in logunittest/actions, see setup.cfg
-- 'lut ut' will os.chdir() into the pgDir and then run: 'pipenv run python -m unittest' within the pgDir
+- logunittest/\__main__.py is entry point and calls a module from logunittest.actions
+- 'lut ut' will os.chdir() into the pgDir and then run your tests
+- 'pipenv run python -m unittest' within the pgDir or 'pytest' will be called
 
 ## Runntime states
 During testing logunittest will temporarily change some settings within your project.
@@ -89,12 +92,15 @@ The .tox directory will remain and can be reused by logunittest multiple times. 
 ## Coverage Infos
 To display some stats from last tests use "lut stats" command.
 
-## Grouping tests
-Tests can be grouped together in order to test dependency packages. This is done by creating a product directory within your defaultLogDir. (i.e. ~/.testlogs/appiwanttotest).
-Inside the new directory create a tox.ini file. Unter \[logunittest\] add a pgList entry with the path to the package you want to test. (i.e. pgList = ~/python_venvs/packages/appiwanttotest, ...)
-You can then run lut like so:
+## Grouping tests like tox
+Tests can be grouped together in order to test dependency packages you own and controll.
+- create one or multiple app directories inside defaultLogDir. (i.e. ~/.testlogs/my_app0).
+- Inside the my_app0 directory create a tox.ini file like shown above.
+- in tox.ini \[logunittest\] add a pgList i.e. pgList = ~/python_venvs/packages/package1, ...)
+
+You can then run logunittest like so:
 ```
-    lut ut -a appiwanttotest
+    lut ut -a my_app
 ```
 This will test the package and also the dependencies as specified in pgList. The test results will be logged in the apps log directories.
 
