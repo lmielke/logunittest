@@ -24,6 +24,9 @@ After running lut, the test results are logged in the settings.defaultLogDir dir
 Currently assumes you are using pipenv.
 NOTE: You cannot have a .venv directory within your project directory as it will prevent logunittest from creating a .venv file.
 
+## Why use this?
+My main objective was to have a non blocking testing mechanism within a CI/CD chain. Test results are logged and any subsequent actions are derrived from the created logs.
+Also I didnt get tox to properly install and activate multiple test environments without interferring with my development environment. This application installs pipenvs the tox way but also creates relevant temp files and changes relevant parameters to properly activate them. 
 
 ## Steps to setup
 1. get and install logunittest
