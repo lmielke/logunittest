@@ -7,24 +7,33 @@ import colorama as color
 color.init()
 
 
-def main(*args, targetDir, **kwargs) -> None:
+def main(*args, pgDir, **kwargs) -> None:
     c = Coverage()
     found = c.get_stats()
-    match, stats = re.match("(<@>)(.*)(<@>)", found), str()
-    if match:
+    match = re.match("(<@>)(.*)(<@>)", found)
+    stats = evaluate_match(match, *args, **kwargs)
+    return stats
+
+
+def evaluate_match(match, *args, **kwargs):
+    if not match:
+        stats = "no matching log found"
+    else:
+        stats = str()
         for i, m in enumerate(match.group(2).split("!")):
             stats += f"{m} "
-            if i == 0:
-                print(f"{color.Fore.WHITE}{m}{color.Style.RESET_ALL}", end=" ")
-            elif re.search(r"err:0", m):
-                print(f"{color.Fore.GREEN}{m}{color.Style.RESET_ALL}")
-            elif re.search(r"err:[1-9][0-9]?", m):
-                print(f"{color.Fore.RED}{m}{color.Style.RESET_ALL}")
-            else:
-                print(f"{color.Fore.YELLOW}{m}{color.Style.RESET_ALL}")
-    if not stats:
-        stats = "no matching log found"
+    if sts.verbose >= 2:
+        colorized_print(stats, *args, **kwargs)
     return stats.strip()
+
+
+def colorized_print(stats, *args, **kwargs):
+    if re.search(r"err:0", stats):
+        print(f"{color.Fore.GREEN}{stats}{color.Style.RESET_ALL}")
+    elif re.search(r"err:[1-9][0-9]?", stats):
+        print(f"{color.Fore.RED}{stats}{color.Style.RESET_ALL}")
+    else:
+        print(f"{color.Fore.YELLOW}{stats}{color.Style.RESET_ALL}")
 
 
 if __name__ == "__main__":

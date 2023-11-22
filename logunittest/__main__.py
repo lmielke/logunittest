@@ -31,7 +31,8 @@ def runable(*args, action, **kwargs):
     imports action as a package and executes it
     returns the runable result
     """
-    return importlib.import_module(f"logunittest.actions.{action}")
+    # modules in logunittest.actions are named like $action.py, to be imported here
+    return importlib.import_module(f"{sts.actionsImportPath}.{action}")
 
 
 def main(*args, **kwargs):
@@ -43,6 +44,8 @@ def main(*args, **kwargs):
 
     # kwargs are vakidated against enforced contract
     kwargs = contracts.checks(*args, **kwargs)
+    contracts.assigns(*args, **kwargs)
+    # run application code
     if kwargs.get("action") != "help":
         return runable(*args, **kwargs).main(*args, **kwargs)
 

@@ -1,4 +1,6 @@
 # get_creds.py
+# this module is wip and currently not used
+
 import os, sys
 from getpass import getpass as gp
 import colorama as color
@@ -18,8 +20,7 @@ class Creds:
                 key = gp(prompt=f"{msg.strip(': ')}: ", stream=None)
                 if force == False:
                     break
-            while not confirmed:
-                confirmed = self._confirm_equals(key, *args, **kwargs)
+            self._confirm_equals(key, *args, **kwargs)
         key = self.get(key, *args, **kwargs)
         return key
 

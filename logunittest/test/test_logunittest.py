@@ -9,14 +9,16 @@ import unittest
 
 # test package imports
 import logunittest.settings as sts
-from logunittest.logunittest import UnitTestWithLogging as LUT
+from logunittest.logunittest import UnitTestWithLogging
+
+# from logunittest.logunittest import extract_stats
 from logunittest.logunittest import Coverage
 
 
 # print(f"\n__file__: {__file__}")
 
 
-class UnitTest(unittest.TestCase):
+class Test_UnitTestWithLogging(unittest.TestCase):
     @classmethod
     def setUpClass(cls, *args, **kwargs):
         cls.verbose = 0
@@ -34,14 +36,14 @@ class UnitTest(unittest.TestCase):
         return out
 
     def test_extract_stats(self, *args, **kwargs):
-        expected = "logunittest summary: [all:20 ok:19 err:1]"
+        expected = (20, 19, 1)
         with open(self.logFile, "r") as f:
             results = f.read()
-        t = LUT(*args, **kwargs)
-        self.assertEqual(t.extract_stats(results, *kwargs), expected)
+        test = UnitTestWithLogging(*args, createLog=False, **kwargs)
+        self.assertEqual(test.extract_stats_unittest(results, *kwargs), expected)
 
     def test___call__(self, *args, **kwargs):
-        expected = r"<@>\d\d-\d\d \d\d:\d\d!\[all:\d ok:\d err:\d\]<@>"
+        expected = r"<@>\d\d-\d\d \d\d:\d\d!\[all:\d+ ok:\d+ err:\d+\]<@>"
         cov = Coverage()
         cov.logDir = sts.testDataDir
         cmds = [
@@ -55,6 +57,27 @@ class UnitTest(unittest.TestCase):
             self.assertTrue(re.match(expected, out.communicate(timeout=5)[0].decode("utf-8")))
         else:
             print(f"__call__ in {os.name} not tested...")
+
+
+class Test_Coverage(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls, *args, **kwargs):
+        cls.verbose = 0
+        cls.testData = cls.mk_test_data(*args, **kwargs)
+        cls.logDir = sts.testDataDir
+
+    @classmethod
+    def tearDownClass(cls, *args, **kwargs):
+        pass
+
+    @classmethod
+    def mk_test_data(cls, *args, **kwargs):
+        return Coverage(*args, **kwargs)
+
+    def test_get_stats(self, *args, **kwargs):
+        expected = r"<@>\d\d-\d\d \d\d:\d\d!\[all:\d+ ok:\d+ err:\d+\]<@>"
+        stats = self.testData.get_stats(*args, **kwargs)
+        self.assertTrue(re.match(expected, stats))
 
 
 if __name__ == "__main__":

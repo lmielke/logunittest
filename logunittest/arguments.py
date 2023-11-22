@@ -28,18 +28,18 @@ def mk_args():
 
     parser.add_argument(
         "-a",
-        "--packageAlias",
+        "--application",
         required=False,
         nargs=None,
         const=None,
         type=str,
         default=None,
-        help="alias you call the future package with, if left blank pgName[:6] is used",
+        help="alias you call the test package/application with, see .testlogs",
     )
 
     parser.add_argument(
         "-p",
-        "--targetDir",
+        "--pgDir",
         required=False,
         nargs=None,
         const=None,
@@ -56,18 +56,7 @@ def mk_args():
         const=None,
         type=str,
         default=None,
-        help="if tested suceessfully, the package can be pushed to git with a comment",
-    )
-
-    parser.add_argument(
-        "-py",
-        "--python_version",
-        required=False,
-        nargs=None,
-        const=None,
-        type=str,
-        default=None,
-        help='overwrite python_version = "3.11" with your desired target version, i.e. 3.9"',
+        help="comment provided by the user or calling function",
     )
 
     parser.add_argument(
@@ -77,21 +66,31 @@ def mk_args():
         nargs="?",
         const=1,
         type=int,
-        default=0,
+        default=1,
         help="0:silent, 1:user, 2:debug",
     )
 
     parser.add_argument(
-        "-g",
-        "--git_sync",
+        "-i",
+        "--testId",
         required=False,
-        nargs="?",
-        const=1,
-        type=bool,
+        nargs=None,
+        const=None,
+        type=str,
         default=None,
-        help="run git_sync after testing",
+        help="testId to group multiple tests together",
     )
 
+    parser.add_argument(
+        "-c",
+        "--cleanup",
+        required=False,
+        nargs="?",
+        const=True,
+        type=bool,
+        default=False,
+        help="do cleanup outdated and overcounting logs, default is NOT to cleanup",
+    )
     parser.add_argument(
         "-y",
         "--yes",

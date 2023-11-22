@@ -1,0 +1,22 @@
+{
+    "python_venvs":  [
+                         null,
+                         "~/python_venvs"
+                     ],
+    "joringels":  [
+                      "gitlab.com/larsmielke2",
+                      "~/python_venvs/libs/joringels"
+                  ],
+    "protopy":  [
+                    "gitlab.com/larsmielke2",
+                    "~/python_venvs/libs/protopy"
+                ],
+    "logunittest":  [
+                        "gitlab.com/larsmielke2",
+                        "~/python_venvs/packages/logunittest"
+                    ],
+    "testopia":  [
+                     "github.com/lmielke",
+                     "~/python_venvs/utils/testopia"
+                 ]
+}

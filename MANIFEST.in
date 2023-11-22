@@ -1,5 +1,3 @@
 include README.md
 include CHANGELOG.md
 include LICENSE
-include logunittest/logs/.gitkeep
-include logunittest/pre_sync_hooks/.gitkeep

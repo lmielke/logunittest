@@ -1,6 +1,6 @@
 # info.py
 import logunittest.settings as sts
-from logunittest.logunittest import Coverage
+from logunittest.logunittest import UnitTestWithLogging, Coverage
 import subprocess
 import os, re, sys
 import configparser
@@ -20,14 +20,10 @@ def infos(path, name, *args, **kwargs):
 
 def main(*args, **kwargs):
     print(f"{kwargs = }")
-    print(f"{sys.executable = }")
-    c = Coverage(*args, **kwargs)
-    print(f"Coverage.pgName: {c.pgName}")
-    print(f"Coverage.get_sorted_logfiles():")
-    print(f"Coverage.logDir: {c.logDir}")
-    for i, file in enumerate(c.get_sorted_logfiles()):
-        print(f"{i}: {os.path.basename(file)}")
-    found = c.get_stats()
+    test = UnitTestWithLogging(*args, **kwargs)
+    cov = Coverage(*args, **kwargs)
+    print(f"\nlogs from logDir: {cov.logDir}")
+    found = cov.get_stats()
     match, stats = re.match("(<@>)(.*)(<@>)", found), str()
     if match:
         for i, m in enumerate(match.group(2).split("!")):
@@ -42,7 +38,7 @@ def main(*args, **kwargs):
                 print(f"{color.Fore.YELLOW}{m}{color.Style.RESET_ALL}")
     if not stats:
         stats = "no matching log found"
-    infos(c.pgPath, c.pgName, *args, **kwargs)
+    infos(test.testPackage.pgDir, test.testPackage.pgName, *args, **kwargs)
 
 
 if __name__ == "__main__":

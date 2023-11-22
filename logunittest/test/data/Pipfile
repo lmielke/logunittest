@@ -18,7 +18,7 @@ pre-commit = "*"
 toml = "*"
 
 [requires]
-python_version = "3.11"
+python_version = "3.7"
 
 [scripts]
 git_sync = "lut ut -g"

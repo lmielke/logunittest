@@ -1,57 +1,193 @@
 # test_unittest.py
-#
-from datetime import datetime as dt
-import os, re, sys
-import subprocess
+# general imports/libs
+import colorama as color
+
+color.init()
 from contextlib import contextmanager
+from datetime import datetime as dt
+import json, os, re, shutil, sys
+import subprocess
+
+# internal module imports
 import logunittest.settings as sts
 import logunittest.logger as logger
+import logunittest.sys_info as sys_info
 
 
-class UnitTestWithLogging:
-    def __init__(self, *args, **kwargs) -> None:
-        self.pgPath, self.pgName = get_package(*args, **kwargs)
+class LogUnitTest:
+    def __init__(self, *args, pgName=None, **kwargs) -> None:
         self.timeStamp = re.sub(r"([:. ])", r"-", str(dt.now()))
-        self.logDir = self.mk_log_dir(*args, **kwargs)
-        # self.logDir = Coverage.get_log_dir(self.pgName, **kwargs)
-        assert os.path.isdir(self.logDir), f"logDir: {self.logDir} does not exist !"
-        self.logDefaultName = f"{os.path.basename(__file__)[:-3]}_{self.timeStamp}.log"
-        self.log = logger.mk_logger(self.logDir, self.logDefaultName, __name__)
+        self.testPackage = Package(*args, **kwargs)
+        self.pyTest = False if self.testPackage.pgName == "logunittest" else True
+        self.logDir = self._manage_log_dir(*args, **kwargs)
+        self.sysInfo = sys_info.SysInfo(*args, pgName=self.testPackage.pgName, **kwargs)
+        self.numFails, self.comment, self.caller, self.callerVersion = 0, {}, None, None
+        self.hasComment = self._handle_comments(*args, **kwargs)
 
-    def mk_log_dir(self, *args, **kwargs) -> str:
-        logDir = os.path.join(sts.testLogsDir, self.pgName)
+    def _manage_log_dir(self, *args, logDir=None, **kwargs) -> str:
+        if logDir is None:
+            logDir = os.path.join(sts.get_testlogsdir(*args, **kwargs), self.testPackage.pgName)
         if not os.path.exists(logDir):
             os.makedirs(logDir)
+        else:
+            logger.manage_logs(logDir, *args, **kwargs)
         return logDir
+
+    def _handle_comments(self, *args, comment: str = None, **kwargs) -> bool:
+        """
+        Comments may be provided as runtime parameter from terminal like -m mycomment
+        or they might be provided from a superset module like tox.py also using -m comment
+        tox.py would use a json string to communicate installation status information
+        those have to be extracted to be used in this module
+        """
+        converts = [self._to_dict, self._to_string]
+        if comment:
+            for convert in converts:
+                try:
+                    self.comment = convert(comment, *args, **kwargs)
+                    return True
+                except Exception as e:
+                    print(f"LogUnitTest._handle_comments.Exception: {e}")
+        return False
+
+    def _to_dict(self, comment: str, *args, **kwargs) -> dict:
+        loaded = json.loads(comment.strip())
+        self.caller = list(loaded.keys())[0]
+        self.callerVersion = list(loaded[self.caller].keys())[0]
+        return loaded
+
+    def _to_string(self, comment: str, *args, **kwargs) -> str:
+        loaded = str(comment)
+        if len(loaded) >= 1:
+            return loaded
+        else:
+            raise
+
+
+class UnitTestWithLogging(LogUnitTest):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.pyVersion = self.get_runntime_version(*args, **kwargs)
+        self.log = logger.mk_logger(self.logDir, self.logFileName, __name__, *args, **kwargs)
+
+    @property
+    def logFileName(self, *args, **kwargs):
+        # logTime has no milliseconds
+        return f"{sts.appName}_" f"{self.timeStamp.rsplit('-', 1)[0]}_py" f"{self.pyVersion}.log"
+
+    def get_runntime_version(self, *args, **kwargs) -> str:
+        sysVersion = sys.version.split(" ")[0].strip()
+        if self.callerVersion is not None:
+            if self.callerVersion[:4] != sysVersion[:4]:
+                msg = (
+                    f"Version mismatch, {self.caller}Version: {self.callerVersion[:4]} "
+                    f"!= sysVersion: {sysVersion[:4]}"
+                )
+                self.comment[self.caller][self.callerVersion] += f"\n{msg}"
+                print(f"{color.Fore.RED}{msg}{color.Style.RESET_ALL}")
+                return self.callerVersion
+        return sysVersion
 
     def run_unittest(self, *args, **kwargs) -> None:
         """
         main unittest funciton which runs unittest using pipenv
         and logs the results in self.logDir
-        Note: a logDir must exist in the package directory to be tested
         """
-        if not os.path.exists(self.logDir):
-            raise Exception(f"Unknow logDir: {self.logDir}! Check {self.pgPath} !")
-        cmds = ["pipenv", "run", "python", "-m", "unittest"]
-        results = (
-            subprocess.Popen(cmds, stderr=subprocess.PIPE, cwd=self.pgPath)
-            .stderr.read()
-            .decode("utf-8")
-        )
-        summary = self.extract_stats(results)
-        body = results.replace("\r", "").replace("\n\n", "\n")
-        results = "\n".join([l for l in body.split("\n")])
-        results += f"\n{sys.executable}"
-        self.log.info(f"{summary}\n{results}")
+        # pytest returns into stdout while unittest returns into stderr
+        stdout, stderr = subprocess.Popen(
+            sts.cmdsPt if self.pyTest else sts.cmdsUt,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=self.testPackage.pgDir,
+        ).communicate()
+        if self.pyTest:
+            return stdout.decode("utf-8")
+        else:
+            return stderr.decode("utf-8")
 
-    def extract_stats(self, results):
+    def log_results(self, results, *args, testId=None, comment=None, **kwargs):
+        # log test results
+        if self.pyTest:
+            numTests, numOk, self.numFails = self.extract_stats_pytest(results)
+        else:
+            numTests, numOk, self.numFails = self.extract_stats_unittest(results)
+        out = (
+            "\n".join([l for l in results.replace("\r", "").replace("\n\n", "\n").split("\n")])
+            + f"\n{sys.executable}"
+        )
+        self.log.info(
+            f"{self.testPackage.pgName}"
+            f"\nunittest summary: [all:{numTests} ok:{numOk} err:{self.numFails}]"
+            f"\n\n<sysInfo>\n{self.sysInfo.data.yaml_data}"
+            f"all:{numTests}\nok:{numOk}\nerr:{self.numFails}"
+            f"\n</sysInfo>\n\n"
+            f"\n{out}"
+        )
+        if self.hasComment:
+            caller = "typed comment" if self.caller is None else self.caller
+            self.log.info(f"\n\n<{caller}>\n{self.comment}\n</{caller}>")
+        if testId is not None:
+            self.log.info(f"\n\n<testId>\n{testId}\n</testId>")
+
+    def check_logs(self, *args, **kwargs):
+        msg = str()
+        if self.numFails != 0:
+            msg += f"_test-err-{self.numFails}_"
+        # logs have to be closed before renaming
+        logger.close_logging(self.log)
+        if self.caller == "logunittest.actions.tox":
+            if self.comment[self.caller][self.callerVersion] != "OK":
+                msg += "_tox-env-err_"
+        if msg != "":
+            self.rename_logs(msg, *args, **kwargs)
+
+    def rename_logs(self, msg, *args, **kwargs):
+        """
+        renames the log files to indicate errors
+        """
+        logFilePath = os.path.join(self.logDir, self.logFileName)
+        newLogFileName = self.logFileName.replace(".log", f"{msg}.log")
+        newLogFilePath = os.path.join(self.logDir, newLogFileName)
+        if os.path.exists(logFilePath):
+            shutil.move(logFilePath, newLogFilePath)
+
+    def extract_stats_pytest(self, results):
+        # print(f"\nresults: {results}")
+        # Regex pattern with optional non-capturing groups
+        regexStr = r"(\d+) passed|(\d+) failed|(\d+) skipped"
+
+        # Find all matches
+        matches = re.findall(regexStr, results)
+        # print(f"matches: {matches}")
+        # Default values
+        total = pass_count = fail_count = skip_count = 0
+
+        # Sum up the counts
+        for passed, failed, skipped in matches:
+            if passed:
+                pass_count += int(passed)
+            if failed:
+                fail_count += int(failed)
+            if skipped:
+                skip_count += int(skipped)
+
+        total = pass_count + fail_count + skip_count
+
+        # Format the output
+        outStr = f"all:{total} ok:{pass_count} err:{fail_count}"
+        # print(f"outStr: {outStr}")
+        return total, pass_count, fail_count
+
+    def extract_stats_unittest(self, results):
         """summerizes test results to add to the log header like [all:12 ok:11 err:1]
         NOTE: the log header is read by powershell, so treat with care
         """
-        numFails, numTests, numOk = 0, 0, 0
+        # print(f"\nresults: {results}")
+        self.numFails, numTests, numOk = 0, 0, 0
         regex = r"(Ran )(\d{1,3})( tests?.*)"
         match = re.search(regex, results)
         # tet total number of tests
+        # print(f"match: {match}")
         if match:
             numTests = match.group(2)
             if numTests.isnumeric():
@@ -61,14 +197,14 @@ class UnitTestWithLogging:
             errRegex = r"(FAILED \(failures=|errors=)(\d{1,3})\)"
             errMatch = re.search(errRegex, results)
             if errMatch:
-                numFails = errMatch.group(2)
-                if numFails.isnumeric():
-                    numFails = int(numFails)
-        numOk = numTests - numFails
-        return f"{self.pgName} summary: [all:{numTests} ok:{numOk} err:{numFails}]"
+                self.numFails = errMatch.group(2)
+                if self.numFails.isnumeric():
+                    self.numFails = int(self.numFails)
+        numOk = numTests - self.numFails
+        return numTests, numOk, self.numFails
 
 
-class Coverage:
+class Coverage(LogUnitTest):
     """
     gets unittest get_stats from logfile and returns it as a parsable string
     output can be used to display test status
@@ -76,32 +212,13 @@ class Coverage:
     HANDLE WITH CARE
     """
 
-    def __init__(self, *args, logDir: str = None, **kwargs):
-        self.pgPath, self.pgName = get_package(*args, **kwargs)
-        self.logDir = os.path.join(os.path.expanduser("~/.testlogs"), self.pgName)
-        # self.logDir = Coverage.get_log_dir(self.pgName, **kwargs)
-        self.regex = r"([0-9 :-]*)( INFO logunittest .* summary: )(\[.*\])"
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.regex = re.compile(r"(\d\d-\d\d \d\d:\d\d)(.*)\n.*(\[.*\])", re.M)
         self.latest = ["Nothing", "Nothing"]
 
     def __call__(self, *args, **kwargs):
         sys.stderr.write(self.get_stats())
-
-    @staticmethod
-    def get_log_dir(pgName=None, *args, **kwargs) -> str:
-        """uses a keyfile such as setup.cfg to derrive
-        the location of the log files directory
-        the log files dir has a fixed position relative to the key files
-        returns the full path to the log files directory
-        """
-        projectKeyFile, packageKeyFile = "setup.cfg", "__main__.py"
-        files = os.listdir()
-        if not projectKeyFile in files and not packageKeyFile in files:
-            return None
-        elif projectKeyFile in files:
-            logDir = os.path.join(os.getcwd(), pgName, "test", "logs")
-        elif packageKeyFile in files:
-            logDir = os.path.join(os.getcwd(), "test", "logs")
-        return logDir
 
     def get_stats(self, *args, **kwargs) -> str:
         """
@@ -111,22 +228,27 @@ class Coverage:
         however files.log which do not have a summary are ignared
         if a summary is found, its immmediately returned
         """
-        default = f"<@><{dt.today()}>!{'logdir not found'}<@>"
+        stats = f"<@><{dt.today()}>!{'logdir not found'}<@>"
         if self.logDir is None or not os.path.exists(self.logDir):
-            sys.stderr.write(default)
+            sys.stderr.write(stats)
         logFilePaths = self.get_sorted_logfiles()
         for logFilePath in logFilePaths:
             with open(logFilePath, "r") as t:
-                text = t.read()
-                match = re.search(self.regex, text)
-            if match:
-                stats = f"<@>{match.group(1)}!{match.group(3)}<@>"
-                self.latest = text.split("\n", 1)
-                break
-        else:
-            stats = default
+                match = self.match_test_output(t.read()[:100], *args, **kwargs)
+                if match is not None:
+                    stats = match
         # sys.stderr.write(stats)
         return stats
+
+    def match_test_output(self, text, *args, **kwargs):
+        """
+        this is used to match the test output to the regex
+        """
+        match = re.search(self.regex, text)
+        if match:
+            stats = f"<@>{match.group(1)}!{match.group(3)}<@>"
+            self.latest = text.split("\n", 1)
+            return stats
 
     def get_sorted_logfiles(self, *args, **kwargs):
         files = [
@@ -135,72 +257,77 @@ class Coverage:
             if re.match(r"^logunittest.*\.log$", f)
             and os.path.isfile(os.path.join(self.logDir, f))
         ]
-        sorteds = sorted(files, key=os.path.getctime, reverse=True)
+        sorteds = sorted(files, key=os.path.getctime, reverse=False)
         return sorteds
 
     def main(self, *args, **kwargs):
         return self.get_stats()
 
 
-def get_package(*args, pgPath: str = None, **kwargs) -> str:
-    pgPath = get_package_path(*args, pgPath, **kwargs)
-    pgName = get_package_name(*args, pgPath=pgPath, **kwargs)
-    return pgPath, pgName
+class Package:
+    """
+    Contains relevant meta data about the package to be tested
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.pgDir = self.get_package_path(*args, **kwargs)
+        self.pgName = self.get_package_name(*args, **kwargs)
+
+    def get_package_path(self, *args, pgName: str = None, pgDir: str = None, **kwargs) -> str:
+        if (pgDir is None or pgDir == ".") and pgName is None:
+            pgDir = os.getcwd()
+        elif pgName is not None:
+            pgDir = os.path.expanduser(sts.availableApps.get(pgName)[1])
+        return pgDir
+
+    def get_package_name(self, *args, **kwargs):
+        setupFile, match = os.path.join(self.pgDir, "setup.cfg"), None
+        if os.path.exists(setupFile):
+            with open(setupFile, "r") as s:
+                setupText = s.read()
+            match = re.search(r"(name = )(.*)", setupText)
+        else:
+            msg = f"File not found: {setupFile}"
+        if match:
+            out = match.group(2)
+            return out
+        else:
+            raise Exception(
+                f"logunittest.UnitTestWithLogging.get_package_path, "
+                f"Package name could not be derrived! "
+                f"\n{msg}"
+            )
 
 
-def get_package_path(*args, pgName: str = None, pgPath: str = None, **kwargs) -> str:
-    if (pgPath is None or pgPath == ".") and pgName is None:
-        pgPath = sts.unalias_path(".")
-    elif pgName is not None:
-        pgPath = os.path.expanduser(sts.availableApps.get(pgName)[1])
-    return pgPath
-
-
-def get_package_name(*args, pgPath: str = None, **kwargs):
-    setupFile, match = os.path.join(pgPath, "setup.cfg"), None
-    if os.path.exists(setupFile):
-        with open(setupFile, "r") as s:
-            setupText = s.read()
-        match = re.search(r"(name = )(.*)", setupText)
-    else:
-        msg = f"File not found: {setupFile}"
-    if match:
-        out = match.group(2)
-        return out
-    else:
-        raise Exception(
-            f"logunittest.UnitTestWithLogging.get_package_path, "
-            f"Package name could not be derrived! "
-            f"\n{msg}"
-        )
-
-
+# some helper functions come here
 @contextmanager
-def temp_chdir(*args, pgPath: str, **kwargs) -> None:
+def temp_chdir(*args, pgDir: str, **kwargs) -> None:
     """Sets the cwd within the context
 
     Args:
-        pgPath (Path): The pgPath to the cwd
+        pgDir (Path): The pgDir to the cwd
 
     Yields:
         None
     """
 
     origin = os.getcwd()
-    pgPath = sts.unalias_path(workPath=pgPath)
     try:
-        os.chdir(pgPath)
+        os.chdir(pgDir)
         yield
     finally:
         os.chdir(origin)
 
 
-def ut(*args, **kwargs):
+def main(*args, **kwargs):
     with temp_chdir(*args, **kwargs):
         import logunittest.logger as logger
 
-        UnitTestWithLogging(logger, *args, **kwargs).run_unittest(*args, **kwargs)
+        test = UnitTestWithLogging(logger, *args, **kwargs)
+        if test.log is not None:
+            test.log_results(test.run_unittest(*args, **kwargs), *args, **kwargs)
+            test.check_logs(*args, **kwargs)
 
 
-if __name__ == "__main__":
-    ut()
+# if __name__ == "__main__":
+#     main()

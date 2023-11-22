@@ -1,4 +1,4 @@
 verbose: 0
 pgName: logunittest
-targetDir: /temp
+pgDir: /temp
 packageAlias: lut
