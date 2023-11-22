@@ -12,13 +12,14 @@ group tests together in order to test dependency packages that you controll.
     lut $action -p --pgDir [/dir/to/tgt] -m comment-c | actions: info, ut, tox
 
     # Examples
-    lut ut [-m "comment to be added to log file"] [-c cleanup logs] [-p pgDir]
+    lut ut [-m:str "comment to be added to log file"] [-c:bool cleanup logs] [-p:str pgDir]
     lut tox (note -m does not work with the tox action)
     lut stats
 ```
 NOTE: if pgDir is omitted os.getcwd() is used
-NOTE: if you use the -p pgDir option, you can run 'pytest' for any package targeted by pgDir
+NOTE: if you use the -p:str pgDir option, you can run 'pytest' for any package targeted by pgDir
 After running lut, the test results are logged in the settings.defaultLogDir directory.
+NOTE: if you dont provide a -i:str testId lut will create a new testId for every test run.
 
 ## System preconditions
 Currently assumes you are using pipenv.
@@ -27,6 +28,8 @@ NOTE: You cannot have a .venv directory within your project directory as it will
 ## Why use this?
 My main objective was to have a non blocking testing mechanism within a CI/CD chain. Test results are logged and any subsequent actions are derrived from the created logs.
 Also I didnt get tox to properly install and activate multiple test environments without interferring with my development environment. This application installs pipenvs the tox way but also creates relevant temp files and changes relevant parameters to properly activate them. 
+
+<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar" class="plain" height="150px" width="220px">
 
 ## Steps to setup
 1. get and install logunittest
