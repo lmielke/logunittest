@@ -124,15 +124,18 @@ Run like:
 ## Coverage Infos
 To display some stats from last tests use "lut stats" command.
 
-## Grouping tests like tox
+## Grouping tests to test dependencies
 Tests can be grouped together in order to test dependency packages you own and controll.
-- create one or multiple app directories inside defaultLogDir. (i.e. ~/.testlogs/my_app0).
-- Inside the my_app0 directory create a tox.ini file like shown above.
+Assume you have a app called my_app0, which includes multiple testable packages.
+- create one or multiple my_app* directories inside defaultLogDir. (i.e. ~/.testlogs/my_app0).
+- Inside the my_app0 directory create a tox.ini file like the one shown above.
 - in tox.ini \[logunittest\] add a pgList i.e. pgList = ~/python_venvs/packages/package1, ...)
 
 You can then run logunittest like so:
 ```shell
-    lut ut -a my_app
+    lut ut -a my_app0
+    # or
+    lut tox -a my_app0
 ```
-This will test the package and also the dependencies as specified in pgList. The test results will be logged in the apps log directories.
+This will test the package and also the dependencies as specified in pgList. The test results will be logged in the my_app0 log directories.
 

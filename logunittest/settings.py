@@ -30,19 +30,19 @@ warningTolerance = 3
 global verbose
 verbose = 1
 
-logStart = "============================= test stats start ============================="
+logStart = f"{' test stats start ':=^76}"
 
 
 def get_testlogsdir(*args, application=None, **kwargs):
     """
     This returns the testlogs directory for the application. If there is no application, it
-    returns a zero_linked folder from testlogs.
+    returns a standalone folder from testlogs.
     Note: an application represents a collection of pgList as defined in application.yml
     """
     if application is not None:
         return os.path.join(defaultLogDir, application)
     else:
-        return os.path.join(defaultLogDir, "zero_linked")
+        return os.path.join(defaultLogDir, "standalone")
 
 
 def clean_params(params, *args, **kwargs):

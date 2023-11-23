@@ -36,7 +36,7 @@ class TestParams:
     def get_config_dir(self, *args, pgDir, application=None, **kwargs):
         """
         This returns the config directory for the application. If there is no application, it
-        returns a zero_linked folder from testlogs.
+        returns a standalone folder from testlogs.
         Note: an application represents a collection of packages as defined in application.yml
         """
         if application is None:
