@@ -12,10 +12,10 @@ My main objective was to have a non blocking testing mechanism within a CI/CD ch
 Also I didnt get tox to properly install and activate multiple test environments without interferring with my development environment. This application installs pipenvs the tox way but also creates relevant temp files and changes relevant parameters to properly activate them. 
 
 ### Here are some examples on how to use the logs:
-<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar_nice" class="plain" height="100px" width="700px">
 <b>Terminal example tests OK.</b>
-<img src="https://drive.google.com/uc?id=1CIDzt1SMxAkjPYggKQf_bRBh0v5MVncJ" alt="terminal_bar_error" class="plain" height="100px" width="700px">
+<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar_nice" class="plain" height="100px" width="700px">
 <b>Terminal example tests ERROR.</b>
+<img src="https://drive.google.com/uc?id=1CIDzt1SMxAkjPYggKQf_bRBh0v5MVncJ" alt="terminal_bar_error" class="plain" height="100px" width="700px">
 
 Also logs can be used to share test results across servers/services.
 
