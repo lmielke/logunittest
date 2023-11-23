@@ -7,28 +7,45 @@ group tests together in order to test dependency packages that you controll.
 
 <img src="https://drive.google.com/uc?id=1CE0ufO4ZjEAV1oimV_23WqpGBzyymFRQ" alt="logunittest" class="plain" height="300px" width="500px">
 
-
-### run in Terminal
-```
-    lut $action -p --pgDir [/dir/to/tgt] -m comment-c | actions: info, ut, tox
-
-    # Examples
-    lut ut [-m:str "comment to be added to log file"] [-c:bool cleanup logs] [-p:str pgDir]
-    lut tox (note -m does not work with the tox action)
-    lut stats
-```
-NOTE: if pgDir is omitted os.getcwd() is used
-NOTE: if you use the -p:str pgDir option, you can run 'pytest' for any package targeted by pgDir
-After running lut, the test results are logged in the settings.defaultLogDir directory.
-NOTE: if you dont provide a -i:str testId lut will create a new testId for every test run.
-
-## System preconditions
-Currently assumes you are using pipenv.
-NOTE: You cannot have a .venv directory within your project directory as it will prevent logunittest from creating a .venv file.
-
 ## Why use this?
 My main objective was to have a non blocking testing mechanism within a CI/CD chain. Test results are logged and any subsequent actions are derrived from the created logs.
 Also I didnt get tox to properly install and activate multiple test environments without interferring with my development environment. This application installs pipenvs the tox way but also creates relevant temp files and changes relevant parameters to properly activate them. 
+
+### Here are some examples on how to use the logs:
+<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar_nice" class="plain" height="100px" width="700px">
+<b>Terminal example tests OK.</b>
+<img src="https://drive.google.com/uc?id=1CIDzt1SMxAkjPYggKQf_bRBh0v5MVncJ" alt="terminal_bar_error" class="plain" height="100px" width="700px">
+<b>Terminal example tests ERROR.</b>
+
+Also logs can be used to share test results across servers/services.
+
+## Features
+### run in Terminal
+```
+    lut $action (i.e. info, ut, tox) -p:str [packageDir] -m:str comment -c:bool -a:str [appName]
+
+    # Examples
+    lut ut -m "testing a single package with log cleanup" -c |#omit -p results in os.getcwd()
+    lut ut -a appName -m "testing bundle as defined in .testlogs/appName/tox.ini"
+    lut tox | runs tests for entire envList as defined in .../packageDir/tox.ini
+    lut stats
+```
+
+### run from shell
+```shell
+    docker run -it --rm --ip 172.18.0.9 --network illuminati lmielke/unittests:latest unittest logunittest no-update
+```
+
+### Parameters:
+- -p: packageDir: path to package directory. If not specified os.getcwd() is used.
+- -m: comment: comment to be added to log file.
+- -c: cleanup of log files. Define cleanup rules in tox.ini.
+- -a: appName: Tests all packages from .testlogs/appName/tox.ini pgList".
+
+## Install
+### System preconditions
+Currently assumes you are using pipenv.
+NOTE: You cannot have a .venv directory within your project directory as it will prevent logunittest from creating a .venv file.
 
 
 ## Steps to setup
@@ -79,9 +96,6 @@ unittest summary: [all:7 ok:7 err:0]
 ## logfile head
 - fileHead can be extracted using logunittest.py.Coverage
 - see test_logunittest.py for examples
-
-<img src="https://drive.google.com/uc?id=1CDYXO_5Y5vKFGyVjYx4ne7GXJNyjzSG1" alt="terminal_bar" class="plain" height="100px" width="700px">
-<b>Example log file extract used in terminal</b>
 
 ## Developer info
 ### logunittest
