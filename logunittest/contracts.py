@@ -41,8 +41,8 @@ def warn_deletion(*args, **kwargs):
     # print(f"srs.contracts.action: {action}")
 
 
-def handle_test_id(*args, testId=None, **kwargs):
-    if testId is None:
+def handle_test_id(action, *args, testId=None, **kwargs):
+    if testId is None and action != "stats":
         testId = re.sub(r"([: .])", r"-", str(dt.now()))[:-7]
     return {"testId": testId}
 

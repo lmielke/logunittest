@@ -30,6 +30,8 @@ warningTolerance = 3
 global verbose
 verbose = 1
 
+logStart = "============================= test stats start ============================="
+
 
 def get_testlogsdir(*args, application=None, **kwargs):
     """

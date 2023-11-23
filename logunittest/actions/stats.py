@@ -9,8 +9,8 @@ color.init()
 
 def main(*args, pgDir, **kwargs) -> None:
     c = Coverage()
-    found = c.get_stats()
-    match = re.match("(<@>)(.*)(<@>)", found)
+    testId, header, _ = c.get_stats(*args, **kwargs)
+    match = re.match("(<@>)(.*)(<@>)", header)
     stats = evaluate_match(match, *args, **kwargs)
     return stats
 

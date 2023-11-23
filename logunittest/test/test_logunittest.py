@@ -76,8 +76,9 @@ class Test_Coverage(unittest.TestCase):
 
     def test_get_stats(self, *args, **kwargs):
         expected = r"<@>\d\d-\d\d \d\d:\d\d!\[all:\d+ ok:\d+ err:\d+\]<@>"
-        stats = self.testData.get_stats(*args, **kwargs)
+        testId, stats, results = self.testData.get_stats(*args, **kwargs)
         self.assertTrue(re.match(expected, stats))
+        print(f"{testId = }")
 
 
 if __name__ == "__main__":

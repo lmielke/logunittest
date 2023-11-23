@@ -19,7 +19,7 @@ class LogUnitTest:
         self.timeStamp = re.sub(r"([:. ])", r"-", str(dt.now()))
         self.testPackage = Package(*args, **kwargs)
         self.pyTest = False if self.testPackage.pgName == "logunittest" else True
-        self.logDir = self._manage_log_dir(*args, **kwargs)
+        self.logDir, self.logContent = self._manage_log_dir(*args, **kwargs), dict()
         self.sysInfo = sys_info.SysInfo(*args, pgName=self.testPackage.pgName, **kwargs)
         self.numFails, self.comment, self.caller, self.callerVersion = 0, {}, None, None
         self.hasComment = self._handle_comments(*args, **kwargs)
@@ -105,29 +105,49 @@ class UnitTestWithLogging(LogUnitTest):
         else:
             return stderr.decode("utf-8")
 
-    def log_results(self, results, *args, testId=None, comment=None, **kwargs):
+    def prep_log_results(self, results, *args, testId=None, comment=None, **kwargs):
         # log test results
         if self.pyTest:
             numTests, numOk, self.numFails = self.extract_stats_pytest(results)
         else:
             numTests, numOk, self.numFails = self.extract_stats_unittest(results)
-        out = (
+        # prep log data
+        self.logContent["head"] = (
+            f"{self.testPackage.pgName}"
+            f"\nunittest summary: [all:{numTests} ok:{numOk} err:{self.numFails}]"
+        )
+        # this info is added to the log latter after test is finished
+        results = (
             "\n".join([l for l in results.replace("\r", "").replace("\n\n", "\n").split("\n")])
             + f"\n{sys.executable}"
         )
-        self.log.info(
-            f"{self.testPackage.pgName}"
-            f"\nunittest summary: [all:{numTests} ok:{numOk} err:{self.numFails}]"
-            f"\n\n<sysInfo>\n{self.sysInfo.data.yaml_data}"
-            f"all:{numTests}\nok:{numOk}\nerr:{self.numFails}"
-            f"\n</sysInfo>\n\n"
-            f"\n{out}"
-        )
+        self.logContent["sysInfo"] = f"{self.sysInfo.data.yaml_data}\n"
+        self.logContent["stats"] = f"all:{numTests}\nok:{numOk}\nerr:{self.numFails}\n"
+        self.logContent["results"] = f"\n{results}"
         if self.hasComment:
             caller = "typed comment" if self.caller is None else self.caller
-            self.log.info(f"\n\n<{caller}>\n{self.comment}\n</{caller}>")
+            self.logContent["comment"] = f"{self.comment}"
         if testId is not None:
-            self.log.info(f"\n\n<testId>\n{testId}\n</testId>")
+            self.logContent["testId"] = f"{testId}"
+        self.log.info(self.logContent["head"])
+        self.log.info(self.logContent["results"])
+
+    def post_logging(self, *args, **kwargs):
+        """
+        logs undergo some post processing after the test is finished
+        """
+        logFilePath = os.path.join(self.logDir, self.logFileName)
+        msg = self.check_logs(*args, **kwargs)
+        if msg != "":
+            logFilePath = self.rename_logs(msg, logFilePath, *args, **kwargs)
+        self.log_results(logFilePath, *args, **kwargs)
+
+    def log_results(self, logFilePath, *args, **kwargs):
+        with open(logFilePath, "a") as f:
+            # jsonStr = json.dumps(self.logContent, ensure_ascii=False)
+            f.write("\n\n" + sts.logStart + "\n")
+            json.dump(self.logContent, f, ensure_ascii=False)
+            # f.write(jsonStr)
 
     def check_logs(self, *args, **kwargs):
         msg = str()
@@ -138,18 +158,17 @@ class UnitTestWithLogging(LogUnitTest):
         if self.caller == "logunittest.actions.tox":
             if self.comment[self.caller][self.callerVersion] != "OK":
                 msg += "_tox-env-err_"
-        if msg != "":
-            self.rename_logs(msg, *args, **kwargs)
+        return msg
 
-    def rename_logs(self, msg, *args, **kwargs):
+    def rename_logs(self, msg, logFilePath, *args, **kwargs):
         """
         renames the log files to indicate errors
         """
-        logFilePath = os.path.join(self.logDir, self.logFileName)
         newLogFileName = self.logFileName.replace(".log", f"{msg}.log")
         newLogFilePath = os.path.join(self.logDir, newLogFileName)
         if os.path.exists(logFilePath):
             shutil.move(logFilePath, newLogFilePath)
+        return newLogFilePath
 
     def extract_stats_pytest(self, results):
         # print(f"\nresults: {results}")
@@ -218,9 +237,9 @@ class Coverage(LogUnitTest):
         self.latest = ["Nothing", "Nothing"]
 
     def __call__(self, *args, **kwargs):
-        sys.stderr.write(self.get_stats())
+        sys.stderr.write(self.get_stats()[1])
 
-    def get_stats(self, *args, **kwargs) -> str:
+    def get_stats(self, *args, testId=None, **kwargs) -> str:
         """
         loops all files.log in self.logDir from old to new and tries
         to find the test summary line using regex (self.regex)
@@ -228,17 +247,23 @@ class Coverage(LogUnitTest):
         however files.log which do not have a summary are ignared
         if a summary is found, its immmediately returned
         """
-        stats = f"<@><{dt.today()}>!{'logdir not found'}<@>"
+        stats = f"<@><{dt.today()}>!{'log not found'}<@>"
         if self.logDir is None or not os.path.exists(self.logDir):
             sys.stderr.write(stats)
         logFilePaths = self.get_sorted_logfiles()
         for logFilePath in logFilePaths:
             with open(logFilePath, "r") as t:
-                match = self.match_test_output(t.read()[:100], *args, **kwargs)
-                if match is not None:
-                    stats = match
-        # sys.stderr.write(stats)
-        return stats
+                head, start, results = t.read().partition(sts.logStart)
+            try:
+                results = json.loads(results)
+                match = self.match_test_output(head, *args, **kwargs)
+            except:
+                continue
+            if testId is None:
+                return testId, match, results
+            elif results["testId"] == testId:
+                return results.get("testId"), match, results
+        return testId, stats, None
 
     def match_test_output(self, text, *args, **kwargs):
         """
@@ -257,7 +282,7 @@ class Coverage(LogUnitTest):
             if re.match(r"^logunittest.*\.log$", f)
             and os.path.isfile(os.path.join(self.logDir, f))
         ]
-        sorteds = sorted(files, key=os.path.getctime, reverse=False)
+        sorteds = sorted(files, key=os.path.getctime, reverse=True)
         return sorteds
 
     def main(self, *args, **kwargs):
@@ -325,8 +350,8 @@ def main(*args, **kwargs):
 
         test = UnitTestWithLogging(logger, *args, **kwargs)
         if test.log is not None:
-            test.log_results(test.run_unittest(*args, **kwargs), *args, **kwargs)
-            test.check_logs(*args, **kwargs)
+            test.prep_log_results(test.run_unittest(*args, **kwargs), *args, **kwargs)
+            test.post_logging(*args, **kwargs)
 
 
 # if __name__ == "__main__":
