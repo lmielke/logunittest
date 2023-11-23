@@ -1,3 +1,4 @@
 include README.md
 include CHANGELOG.md
 include LICENSE
+include logunittest/resources/terminal_displays.ps1
