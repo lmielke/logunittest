@@ -250,26 +250,35 @@ class Coverage(LogUnitTest):
         stats = f"<@><{dt.today()}>!{'log not found'}<@>"
         if self.logDir is None or not os.path.exists(self.logDir):
             sys.stderr.write(stats)
-        logFilePaths = self.get_sorted_logfiles()
-        for logFilePath in logFilePaths:
-            with open(logFilePath, "r") as t:
-                head, start, results = t.read().partition(sts.logStart)
-            try:
-                results = json.loads(results)
-                match = self.match_test_output(head, *args, **kwargs)
-            except:
-                continue
-            if testId is None:
-                return testId, match, results
-            elif results["testId"] == testId:
-                return results.get("testId"), match, results
+        logFilePaths = reversed(self.get_sorted_logfiles())
+        for i, logFilePath in enumerate(logFilePaths):
+            # print(f"i: {i}, logFilePath: {logFilePath}")
+            match, results = self.load_log_content(logFilePath, *args, **kwargs)
+            if match:
+                if testId is None:
+                    return testId, match, results
+                elif results.get("testId") == testId:
+                    return results.get("testId"), match, results
+            # msg = f"{color.Fore.RED}no match found in {logFilePath}{color.Style.RESET_ALL}"
+            # assert match, msg
         return testId, stats, None
+
+    def load_log_content(self, logFilePath, *args, **kwargs):
+        with open(logFilePath, "r") as t:
+            head, start, results = t.read().partition(sts.logStart)
+        try:
+            results = json.loads(results)
+            match = self.match_test_output(head, *args, **kwargs)
+        except:
+            return None, {}
+        return match, results
 
     def match_test_output(self, text, *args, **kwargs):
         """
         this is used to match the test output to the regex
         """
         match = re.search(self.regex, text)
+        # print(f"<@>{match.group(1)}!{match.group(3)}<@>")
         if match:
             stats = f"<@>{match.group(1)}!{match.group(3)}<@>"
             self.latest = text.split("\n", 1)
@@ -282,7 +291,7 @@ class Coverage(LogUnitTest):
             if re.match(r"^logunittest.*\.log$", f)
             and os.path.isfile(os.path.join(self.logDir, f))
         ]
-        sorteds = sorted(files, key=os.path.getctime, reverse=True)
+        sorteds = sorted(files, reverse=False)
         return sorteds
 
     def main(self, *args, **kwargs):

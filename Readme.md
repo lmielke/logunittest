@@ -7,6 +7,8 @@ group tests together in order to test dependency packages that you controll.
 
 <img src="https://drive.google.com/uc?id=1CE0ufO4ZjEAV1oimV_23WqpGBzyymFRQ" alt="logunittest" class="plain" height="300px" width="500px">
 
+NOTE: This tool is in alpha. Quick start: https://www.youtube.com/watch?v=MXNGZotqKhQ
+
 ## Why use this?
 My main objective was to have a non blocking testing mechanism within a CI/CD chain. Test results are logged and any subsequent actions are derrived from the created logs.
 Also I didnt get tox to properly install and activate multiple test environments without interferring with my development environment. This application installs pipenvs the tox way but also creates relevant temp files and changes relevant parameters to properly activate them. 
@@ -31,7 +33,8 @@ Also logs can be used to share test results across servers/services.
     lut ut -m "testing a single package with log cleanup" -c |#omit -p results in os.getcwd()
     lut ut -a appName -m "testing bundle as defined in .testlogs/appName/tox.ini"
     lut tox | runs tests for entire envList as defined in .../packageDir/tox.ini
-    lut stats
+    lut logs [-v 2, 3] [-i testId] | prints latest log files
+    lut stats  [-i testId] | prints stats from latest log files
 ```
 
 ### run from shell

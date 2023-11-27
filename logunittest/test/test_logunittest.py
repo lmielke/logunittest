@@ -43,6 +43,7 @@ class Test_UnitTestWithLogging(unittest.TestCase):
         self.assertEqual(test.extract_stats_unittest(results, *kwargs), expected)
 
     def test___call__(self, *args, **kwargs):
+        # print(f"\n__call__ in {sys.version, sys.executable} ...")
         expected = r"<@>\d\d-\d\d \d\d:\d\d!\[all:\d+ ok:\d+ err:\d+\]<@>"
         cov = Coverage()
         cov.logDir = sts.testDataDir

@@ -42,7 +42,7 @@ def warn_deletion(*args, **kwargs):
 
 
 def handle_test_id(action, *args, testId=None, **kwargs):
-    if testId is None and action != "stats":
+    if testId is None and action not in ["stats", "logs"]:
         testId = re.sub(r"([: .])", r"-", str(dt.now()))[:-7]
     return {"testId": testId}
 

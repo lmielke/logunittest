@@ -20,6 +20,7 @@ configDefault = "tox.ini"
 envRegex = r"\d+\.\d+\.*\d*"  # example 3.7.4
 
 defaultLogDir = os.path.normpath(os.path.expanduser("~/.testlogs"))
+standAloneDir = "standalone"
 # pick one or more of the following: Logs that excede the threshold will be deleted
 # set to None if a particular thresh should not apply
 # NOTE: if count is set to None, no deletions or wanrings will appear due to large log count

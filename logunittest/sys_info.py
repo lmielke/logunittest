@@ -2,7 +2,10 @@ import datetime, os, sys
 import platform
 import socket
 import subprocess
-import psutil
+
+# import psutil
+# from resource import *
+import multiprocessing
 import yaml
 from dataclasses import dataclass, asdict
 
@@ -53,7 +56,7 @@ class SysInfo:
             os_architecture=platform.machine(),
             timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             cpu=self.get_cpu_info(),
-            memory=self.get_memory_info(),
+            memory=None,  # self.get_memory_info(),
             in_docker=self.running_in_docker(),
             latest_commit_id=self.get_latest_merge_commit_id(),
             docker_build_time="N/A",  # Placeholder, requires Docker-specific implementation
@@ -62,12 +65,13 @@ class SysInfo:
     def get_cpu_info(self):
         return {
             "Processor": platform.processor(),
-            "Physical Cores": psutil.cpu_count(logical=False),
-            "Total Cores": psutil.cpu_count(logical=True),
+            "Physical Cores": multiprocessing.cpu_count(),
+            # "Total Cores": multiprocessing.cpu_count(logical=True),
         }
 
     def get_memory_info(self):
-        virtual_memory = psutil.virtual_memory()
+        # virtual_memory = psutil.virtual_memory()
+        virtual_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         return {"Total Memory": virtual_memory.total, "Available Memory": virtual_memory.available}
 
     def get_latest_merge_commit_id(self):
