@@ -7,7 +7,7 @@ import colorama as color
 color.init()
 
 
-def main(*args, pgDir, **kwargs) -> None:
+def main(*args, pgDir=None, **kwargs) -> None:
     c = Coverage()
     testId, header, _ = c.get_stats(*args, **kwargs)
     match = re.match("(<@>)(.*)(<@>)", header)

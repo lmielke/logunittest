@@ -11,3 +11,4 @@
 - tox style testing added using tox resources (tox.ini, .tox dir)
 - git_sync removed
 - contract environment checks added
+- log readout (lut logs -i testId)

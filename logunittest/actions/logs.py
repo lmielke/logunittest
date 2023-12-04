@@ -12,7 +12,7 @@ color.init()
 
 def get_logs(*args, testId: str = None, **kwargs) -> list:
     cov = Coverage()
-    testId = testId if testId is not None else get_latest_log(cov, *args, **kwargs)
+    testId = testId if testId is not None else get_log_results(cov, *args, **kwargs)
     if testId is None:
         print(f"{color.Fore.RED}No testId provided and no logs found!{color.Style.RESET_ALL}")
         return None
@@ -37,9 +37,9 @@ def get_logs_by_logId(cov, *args, testId: str = None, logDir: str = None, **kwar
     return logs
 
 
-def get_latest_log(cov, *args, **kwargs) -> str:
-    newestLogPath = cov.get_sorted_logfiles(*args, **kwargs)[-1]
-    match, results = cov.load_log_content(*args, logFilePath=newestLogPath, **kwargs)
+def get_log_results(cov, *args, logPath: str = None, **kwargs) -> str:
+    logPath = logPath if logPath is not None else cov.get_sorted_logfiles(*args, **kwargs)[-1]
+    match, results = cov.load_log_content(*args, logFilePath=logPath, **kwargs)
     return results.get("testId")
 
 
