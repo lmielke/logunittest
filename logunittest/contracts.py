@@ -22,8 +22,9 @@ def check_environment(*args, action=None, pgDir=None, **kwargs):
     assert not os.path.isdir(os.path.join(pgDir, ".venv")), msg
     msg = f"{color.Fore.RED}No Pipfile found in project directory!{color.Style.RESET_ALL}"
     assert os.path.isfile(os.path.join(pgDir, "Pipfile")), msg
-    msg = f"{color.Fore.RED}No setup.py found in project directory!{color.Style.RESET_ALL}"
-    assert os.path.isfile(os.path.join(pgDir, "setup.py")), msg
+    if os.name == "nt":
+        msg = f"{color.Fore.RED}No setup.py found in project directory!{color.Style.RESET_ALL}"
+        assert os.path.isfile(os.path.join(pgDir, "setup.py")), msg
     msg = "Warning: No tox.ini found in project directory! For lut tox you will need one!"
     msg = f"{color.Fore.YELLOW}{msg}{color.Style.RESET_ALL}"
     if not os.path.isfile(os.path.join(pgDir, "tox.ini")):
