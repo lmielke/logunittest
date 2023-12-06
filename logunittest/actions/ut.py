@@ -24,7 +24,9 @@ color.init()
 def main(*args, **kwargs) -> None:
     # assignes additional parameters to kwargs -> i.e. pgList, pythons
     ini0 = TestParams(*args, **kwargs)
-    run_uts(*args, **ini0.__dict__.get("pgList", os.getcwd()), **kwargs)
+    defaultPackage = {os.path.basename(os.getcwd()): os.getcwd()}
+    print(f"{defaultPackage = }")
+    run_uts(*args, **ini0.__dict__.get("pgList", defaultPackage), **kwargs)
     return kwargs["testId"]
 
 
