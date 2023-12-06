@@ -1,8 +1,14 @@
 # test_unittest.py
 # general imports/libs
+# colors for printing
 import colorama as color
 
 color.init()
+COL_RM = color.Style.RESET_ALL
+YELLOW = color.Fore.YELLOW
+GREEN = color.Fore.GREEN
+RED = color.Fore.RED
+
 from contextlib import contextmanager
 from datetime import datetime as dt
 import json, os, re, shutil, sys
@@ -306,6 +312,7 @@ class Package:
     def __init__(self, *args, **kwargs):
         self.pgDir = self.get_package_path(*args, **kwargs)
         self.pgName = self.get_package_name(*args, **kwargs)
+        self.isPackage = True
 
     def get_package_path(self, *args, pgName: str = None, pgDir: str = None, **kwargs) -> str:
         if (pgDir is None or pgDir == ".") and pgName is None:
@@ -325,12 +332,9 @@ class Package:
         elif "__init__.py" in os.listdir(os.getcwd()):
             out = os.path.basename(os.getcwd())
         else:
-            msg = f"File not found: {setupFile}"
-            raise Exception(
-                f"logunittest.UnitTestWithLogging.get_package_path, "
-                f"Package name could not be derrived! "
-                f"\n{msg}"
-            )
+            out = os.path.basename(os.getcwd())
+            print(f"{RED}Not a package: {setupFile}{COL_RM}")
+            self.isPackage = False
         return out
 
 
