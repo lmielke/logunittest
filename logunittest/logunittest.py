@@ -320,17 +320,18 @@ class Package:
             with open(setupFile, "r") as s:
                 setupText = s.read()
             match = re.search(r"(name = )(.*)", setupText)
+            if match:
+                out = match.group(2)
+        elif "__init__.py" in os.listdir(os.getcwd()):
+            out = os.path.basename(os.getcwd())
         else:
             msg = f"File not found: {setupFile}"
-        if match:
-            out = match.group(2)
-            return out
-        else:
             raise Exception(
                 f"logunittest.UnitTestWithLogging.get_package_path, "
                 f"Package name could not be derrived! "
                 f"\n{msg}"
             )
+        return out
 
 
 # some helper functions come here
